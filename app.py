@@ -1,98 +1,136 @@
-# utils.py
+import streamlit as st
 import pandas as pd
 import numpy as np
-import yaml
-import os
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.neighbors import NearestNeighbors
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+import io
 
-def load_config(path="config.yaml"):
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Missing config file: {path}")
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+# ----------------------------
+# CONFIG
+# ----------------------------
+st.set_page_config(
+    page_title="👕 SweatSmart AI – Fabric Comfort Recommender",
+    layout="wide"
+)
 
-def _read_excel(url_or_path):
-    # explicit engine for .xlsx files
-    return pd.read_excel(url_or_path, engine="openpyxl")
+# Fabric explanations (extend as needed)
+FABRIC_INFO = {
+    "Cotton": "Soft, breathable, and moisture-absorbent. Great for everyday wear, but dries slowly.",
+    "Polyester": "Durable, wrinkle-resistant, and lightweight. Wicks moisture but can trap heat.",
+    "Nylon": "Strong, elastic, quick-drying, commonly used in activewear.",
+    "Wool": "Warm, insulating, and naturally breathable. Can be itchy for sensitive skin.",
+    "Linen": "Highly breathable and cool, but wrinkles easily.",
+    "Bamboo": "Soft, eco-friendly, and breathable. Naturally antibacterial."
+}
 
-def load_datasets(cfg):
-    ds = cfg.get("datasets", {})
-    mat = ds.get("material_url")
-    survey = ds.get("survey_url")
-    if not mat or not survey:
-        raise KeyError("config.yaml must have datasets.material_url and datasets.survey_url")
-    dm = _read_excel(mat)
-    dsr = _read_excel(survey)
-    # unify: lower/clean columns, add source
-    dm = dm.copy()
-    dm["__source"] = "literature"
-    dsr = dsr.copy()
-    dsr["__source"] = "survey"
-    df = pd.concat([dm, dsr], ignore_index=True, sort=False)
-    # standardize column names
-    df.columns = df.columns.str.strip().str.lower().str.replace(r"[^\w]", "_", regex=True)
-    return df
+# ----------------------------
+# LOAD DATASETS
+# ----------------------------
+@st.cache_data
+def load_data():
+    try:
+        dataset_url = "https://github.com/Volandofernando/Material-Literature-data-/raw/main/Dataset.xlsx"
+        survey_url = "https://github.com/Volandofernando/REAL-TIME-Dataset/raw/main/IT%20Innovation%20in%20Fabric%20Industry%20%20(Responses).xlsx"
 
-def _find_column_by_keywords(cols, keywords):
-    kws = [k.lower() for k in keywords]
-    for c in cols:
-        cl = c.lower()
-        if all(k in cl for k in kws):
-            return c
-    return None
+        df_fabrics = pd.read_excel(dataset_url)
+        df_survey = pd.read_excel(survey_url)
 
-def detect_features_and_target(df, cfg):
-    fk = cfg.get("feature_keywords", {})
-    tk = cfg.get("target_keywords", ["comfort", "score"])
-    cols = df.columns.tolist()
-    feature_cols = []
-    for _, kws in fk.items():
-        found = _find_column_by_keywords(cols, kws)
-        if found:
-            feature_cols.append(found)
-    target_col = _find_column_by_keywords(cols, tk)
-    # fallback: choose numeric columns
-    if len(feature_cols) < 4:
-        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        # remove target if detected
-        if target_col in numeric_cols:
-            numeric_cols = [c for c in numeric_cols if c != target_col]
-        for c in numeric_cols:
-            if c not in feature_cols:
-                feature_cols.append(c)
-            if len(feature_cols) >= 4:
-                break
-    if target_col is None:
-        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        if numeric_cols:
-            target_col = numeric_cols[-1]
-    return feature_cols, target_col
+        return df_fabrics, df_survey
+    except Exception as e:
+        st.error(f"❌ Failed to load datasets: {e}")
+        return None, None
 
-def train_model(df, feature_cols, target_col, cfg):
-    # ensure target numeric
-    df = df.copy()
-    df[target_col] = pd.to_numeric(df[target_col], errors="coerce")
-    df = df.dropna(subset=feature_cols + [target_col])
-    if df.shape[0] < 3:
-        raise ValueError("Not enough valid rows to train model after dropna.")
-    X = df[feature_cols].astype(float).values
-    y = df[target_col].astype(float).values
-    test_size = float(cfg.get("model", {}).get("test_size", 0.25))
-    rs = int(cfg.get("model", {}).get("random_state", 42))
-    n_estimators = int(cfg.get("model", {}).get("n_estimators", 200))
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=rs)
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-    model = RandomForestRegressor(n_estimators=n_estimators, random_state=rs)
-    model.fit(X_train_scaled, y_train)
-    return model, scaler, X_test_scaled, y_test, df
 
-def evaluate_model(model, X_test, y_test):
-    preds = model.predict(X_test)
-    rmse = float(np.sqrt(mean_squared_error(y_test, preds)))
-    r2 = float(r2_score(y_test, preds))
-    return {"rmse": round(rmse, 4), "r2": round(r2, 4)}
+df_fabrics, df_survey = load_data()
+
+if df_fabrics is None:
+    st.stop()
+
+# ----------------------------
+# USER INPUTS
+# ----------------------------
+st.title("👕 SweatSmart AI – Fabric Comfort Recommender")
+st.markdown(
+    "### AI-Powered Fabric Comfort Recommender\n"
+    "Trusted by textile R&D, apparel design, and sportswear innovation teams. "
+    "Adjust your conditions and instantly see top fabric recommendations optimized "
+    "for **comfort, sweat management, and performance.**"
+)
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    temp = st.slider("🌡️ Temperature (°C)", 10, 45, 25)
+with col2:
+    humidity = st.slider("💧 Humidity (%)", 20, 100, 60)
+with col3:
+    activity = st.selectbox("🏃 Activity Level", ["Low", "Medium", "High"])
+
+activity_map = {"Low": 1, "Medium": 2, "High": 3}
+
+# ----------------------------
+# AI RECOMMENDER
+# ----------------------------
+def recommend_fabrics(temp, humidity, activity):
+    try:
+        features = df_fabrics[["Temperature", "Humidity", "Activity"]]
+        scaler = StandardScaler()
+        scaled_features = scaler.fit_transform(features)
+
+        model = NearestNeighbors(n_neighbors=3)
+        model.fit(scaled_features)
+
+        query = scaler.transform([[temp, humidity, activity_map[activity]]])
+        distances, indices = model.kneighbors(query)
+
+        return df_fabrics.iloc[indices[0]]
+    except Exception as e:
+        st.error(f"⚠️ Recommendation error: {e}")
+        return pd.DataFrame()
+
+
+recommendations = recommend_fabrics(temp, humidity, activity)
+
+if not recommendations.empty:
+    st.subheader("✅ Top Fabric Recommendations")
+    for _, row in recommendations.iterrows():
+        fabric = row["Fabric"]
+        st.markdown(f"**{fabric}** – {FABRIC_INFO.get(fabric, 'No description available')}")
+
+    # ----------------------------
+    # EXPORT OPTIONS
+    # ----------------------------
+    st.subheader("📤 Export Recommendations")
+
+    # Excel
+    excel_buffer = io.BytesIO()
+    recommendations.to_excel(excel_buffer, index=False, engine="xlsxwriter")
+    st.download_button(
+        "⬇️ Download as Excel",
+        data=excel_buffer,
+        file_name="fabric_recommendations.xlsx",
+        mime="application/vnd.ms-excel"
+    )
+
+    # PDF
+    pdf_buffer = io.BytesIO()
+    c = canvas.Canvas(pdf_buffer, pagesize=A4)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, 800, "Fabric Comfort Recommendations")
+    c.setFont("Helvetica", 12)
+
+    y = 760
+    for _, row in recommendations.iterrows():
+        fabric = row["Fabric"]
+        desc = FABRIC_INFO.get(fabric, "No description available")
+        c.drawString(80, y, f"{fabric}: {desc}")
+        y -= 20
+
+    c.save()
+    st.download_button(
+        "⬇️ Download as PDF",
+        data=pdf_buffer.getvalue(),
+        file_name="fabric_recommendations.pdf",
+        mime="application/pdf"
+    )
