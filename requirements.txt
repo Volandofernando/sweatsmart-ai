@@ -1,8 +1,8 @@
-streamlit
-pandas
-numpy
-scikit-learn
-altair
-pyyaml
-openpyxl
-joblib
+streamlit==1.49.1
+pandas==2.3.2
+numpy==2.3.3
+scikit-learn==1.7.2
+openpyxl==3.1.5
+pyyaml==6.0
+altair==5.5.0
+joblib==1.5.2
