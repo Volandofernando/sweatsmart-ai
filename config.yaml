@@ -1,12 +1,24 @@
+# config.yaml
 app:
   title: "Fabric Comfort AI Recommender"
-  theme_color: "#2563EB"
+  theme_color: "#1F77B4"
 
 datasets:
-  material_data: "https://github.com/Volandofernando/Material-Literature-data-/raw/main/Dataset.xlsx"
-  survey_data: "https://github.com/Volandofernando/REAL-TIME-Dataset/raw/main/IT%20Innovation%20in%20Fabric%20Industry%20%20(Responses).xlsx"
+  # raw GitHub links (must be raw URLs)
+  material_url: "https://raw.githubusercontent.com/Volandofernando/Material-Literature-data-/main/Dataset.xlsx"
+  survey_url: "https://raw.githubusercontent.com/Volandofernando/REAL-TIME-Dataset/main/IT%20Innovation%20in%20Fabric%20Industry%20%20(Responses).xlsx"
 
-ml:
-  features: ["Thermal_Resistance", "Air_Permeability", "Moisture_Regain", "Thickness"]
-  target: "Comfort_Score"
+# keywords used to detect columns automatically (case-insensitive, token match)
+feature_keywords:
+  moisture_regain: ["moisture", "regain"]
+  water_absorption: ["water", "absorption"]
+  drying_time: ["drying", "time"]
+  thermal_conductivity: ["thermal", "conductivity"]
+
+# tokens for the target (comfort score)
+target_keywords: ["comfort", "score"]
+
+model:
+  test_size: 0.25
+  random_state: 42
   n_estimators: 200
