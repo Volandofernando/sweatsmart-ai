@@ -2,30 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-from io import BytesIO
 from utils import load_config, load_datasets, detect_features_and_target, train_model, evaluate_model
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 
 # -------------------------------
 # Load Config
 # -------------------------------
 config = load_config()
 st.set_page_config(page_title=config["app"]["title"], layout="wide")
-
-# -------------------------------
-# Fabric Knowledge Base
-# -------------------------------
-fabric_info = {
-    "Cotton": "Breathable, soft, and moisture-absorbent. Common for casual and summer wear.",
-    "Polyester": "Durable, lightweight, quick-drying, but less breathable. Often used in sportswear.",
-    "Nylon": "Strong, elastic, and abrasion-resistant. Common in activewear and outerwear.",
-    "Wool": "Warm, insulating, and moisture-wicking. Suitable for cold climates.",
-    "Silk": "Luxurious, smooth, and breathable. Often used for formal or premium garments.",
-    "Linen": "Highly breathable, lightweight, and cooling. Ideal for hot weather.",
-    "Rayon": "Soft and versatile with silk-like feel. Used in both fashion and performance fabrics.",
-    "Spandex": "Stretchable and elastic. Often blended with other fibers for comfort and flexibility."
-}
 
 # -------------------------------
 # Custom Styling
@@ -78,7 +61,7 @@ st.markdown("""
     </p>
     <p>
     Enter your environmental conditions and instantly receive <b>optimized fabric recommendations</b> 
-    with detailed explanations, balancing <b>comfort, sweat control, and performance</b>.
+    that balance <b>comfort, sweat control, and performance</b>.
     </p>
 </div>
 """, unsafe_allow_html=True)
@@ -116,98 +99,48 @@ with tab1:
         sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"])
         activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"])
 
+    # Encode categorical inputs
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
     sweat_num, activity_num = sweat_map[sweat_sensitivity], activity_map[activity_intensity]
 
+    # Build user input vector (example scaling logic)
     user_input = np.array([[sweat_num * 5,
                             800 + humidity * 5,
                             60 + activity_num * 10,
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
+    # Predict comfort score and find closest fabrics
     predicted_score = model.predict(user_input_scaled)[0]
     df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
     top_matches = df_clean.sort_values(by="predicted_diff").head(3)
 
+    # Display results
     st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
     cols = st.columns(3)
-    recommendations = []
-
     for i, (_, row) in enumerate(top_matches.iterrows()):
-        fabric = row.get("fabric_type", "Unknown")
-        explanation = fabric_info.get(fabric, "No description available.")
-        score = round(row[target_col], 2)
-
         with cols[i]:
             st.markdown(f"""
             <div class="metric-card">
-                <h4>🧵 {fabric}</h4>
-                <div class="metric-value">{score}</div>
+                <h4>🧵 {row.get('fabric_type','Unknown')}</h4>
+                <div class="metric-value">{round(row[target_col], 2)}</div>
                 <div class="metric-label">Comfort Score</div>
-                <p>{explanation}</p>
+                <p><b>Breathability:</b> {row.get('breathability','-')}  
+                <br><b>Moisture Mgmt:</b> {row.get('moisture_wicking','-')}  
+                <br><b>Thermal Resistance:</b> {row.get('thermal_resistance','-')}</p>
             </div>
             """, unsafe_allow_html=True)
 
-        recommendations.append({
-            "Fabric": fabric,
-            "Comfort Score": score,
-            "Explanation": explanation
-        })
-
     # Chart
-    chart_data = pd.DataFrame(recommendations)
+    chart_data = top_matches[[target_col, "fabric_type"]].rename(columns={target_col: "Comfort Score"})
     chart = alt.Chart(chart_data).mark_bar(color=config["app"]["theme_color"]).encode(
-        x=alt.X("Fabric", sort=None),
+        x=alt.X("fabric_type", sort=None),
         y="Comfort Score"
     )
     st.altair_chart(chart, use_container_width=True)
 
-    # -------------------------------
-    # Export Functions
-    # -------------------------------
-    st.markdown("### 📤 Export Recommendation Report")
-
-    # Export to Excel
-    excel_buffer = BytesIO()
-    pd.DataFrame(recommendations).to_excel(excel_buffer, index=False)
-    st.download_button(
-        label="📊 Download Excel Report",
-        data=excel_buffer.getvalue(),
-        file_name="fabric_recommendations.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-
-    # Export to PDF
-    def generate_pdf(recommendations):
-        pdf_buffer = BytesIO()
-        c = canvas.Canvas(pdf_buffer, pagesize=A4)
-        width, height = A4
-
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(50, height - 50, "Fabric Recommendation Report")
-
-        c.setFont("Helvetica", 12)
-        y = height - 100
-        for rec in recommendations:
-            c.drawString(50, y, f"Fabric: {rec['Fabric']}  |  Comfort Score: {rec['Comfort Score']}")
-            y -= 20
-            c.setFont("Helvetica-Oblique", 10)
-            c.drawString(70, y, f"Details: {rec['Explanation']}")
-            c.setFont("Helvetica", 12)
-            y -= 30
-
-        c.save()
-        pdf_buffer.seek(0)
-        return pdf_buffer
-
-    pdf_report = generate_pdf(recommendations)
-    st.download_button(
-        label="📄 Download PDF Report",
-        data=pdf_report,
-        file_name="fabric_recommendations.pdf",
-        mime="application/pdf"
-    )
+    st.caption("✅ Recommendations are data-driven and optimized for your chosen environmental profile.")
 
 # -------------------------------
 # TAB 2: Dataset Insights
@@ -253,14 +186,13 @@ with tab4:
 
     🚀 Key Features:  
     - AI-powered comfort prediction based on fabric & environment  
-    - Built-in **knowledge base** explaining each fabric type  
-    - Exportable reports in **Excel and PDF**  
+    - Combines **lab-tested properties** with **simulated conditions**  
     - Optimized for **R&D, apparel design, and sportswear innovation**  
 
     🌍 Industry Use Cases:  
-    - **Sportswear brands**: digital testing of fabrics before production  
-    - **Fashion houses**: optimize seasonal fabric selection  
-    - **Healthcare textiles**: patient comfort and hospital uniforms  
+    - **Sportswear brands**: test fabrics digitally before production  
+    - **Fashion houses**: optimize material selection for seasonal collections  
+    - **Healthcare textiles**: recommend patient comfort fabrics  
 
     👨‍💻 Built by: *Volando Fernando*  
     """)
