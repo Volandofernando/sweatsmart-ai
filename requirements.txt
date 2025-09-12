@@ -6,3 +6,5 @@ openpyxl
 pyyaml
 altair
 joblib
+reportlab
+xlsxwriter
