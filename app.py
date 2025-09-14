@@ -32,19 +32,6 @@ fabric_info = {
 # -------------------------------
 st.markdown(f"""
 <style>
-    .main {{ background-color: #FAFAFA; }}
-    h1, h2, h3 {{ color: {config['app']['theme_color']}; font-family: 'Helvetica Neue', sans-serif; }}
-    .intro-box {{
-        padding: 1.2rem;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
-    }}
-    .metric-card {{# -------------------------------
-# Custom Styling (Dark Theme)
-# -------------------------------
-st.markdown(f"""
-<style>
     .main {{
         background-color: #0E1117;  /* Dark background */
         color: #EAEAEA;  /* Light text */
