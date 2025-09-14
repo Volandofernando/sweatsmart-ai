@@ -115,11 +115,11 @@ with tab1:
         temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28,
                                 help="Higher temperatures increase thermal stress and impact fabric comfort.")
         humidity = st.slider("💧 Humidity (%)", 10, 100, 60,
-                             help="Humidity is the amount of moisture in the air. Higher humidity slows sweat evaporation, making fabrics feel warmer.")
+                             help="Humidity = moisture in the air. High humidity slows sweat evaporation → fabrics feel warmer.")
         sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"],
                                              help="Represents how easily you sweat during activities.")
         activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"],
-                                              help="Indicates your movement level, influencing heat and sweat generation.")
+                                              help="Higher activity = more heat and sweat.")
 
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
@@ -132,6 +132,7 @@ with tab1:
     user_input_scaled = scaler.transform(user_input)
 
     predicted_score = model.predict(user_input_scaled)[0]
+    predicted_percent = round(predicted_score * 100, 1)  # interpret as %
     df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
     top_matches = df_clean.sort_values(by="predicted_diff").head(3)
 
@@ -143,7 +144,7 @@ with tab1:
         fabric = row.get("fabric_type", "Unknown")
         explanation = fabric_info.get(fabric, "No description available.")
         score_raw = row[target_col]
-        score = round(score_raw * 10, 1)   # convert to %
+        score = round(score_raw * 100, 1)
         comfort_label = f"{score} %"
 
         with cols[i]:
@@ -217,44 +218,29 @@ with tab1:
         mime="application/pdf"
     )
 
-# -------------------------------
-# TAB 2: Dataset Insights
-# -------------------------------
-with tab2:
-    st.markdown("### 📊 Dataset Overview")
-    st.dataframe(df_clean.head(10))
-
-    st.write("#### Summary Statistics")
-    st.write(df_clean.describe())
-
-    st.write("#### Correlation Heatmap")
-    corr = df_clean[feature_cols + [target_col]].corr().reset_index().melt("index")
-    heatmap = alt.Chart(corr).mark_rect().encode(
-        x="index:O", y="variable:O", color="value:Q"
-    )
-    st.altair_chart(heatmap, use_container_width=True)
+    # -------------------------------
+    # Extra Info Table
+    # -------------------------------
+    st.markdown("### 🧵 Fabric Knowledge Base")
+    st.dataframe(pd.DataFrame(fabric_info.items(), columns=["Fabric", "Description"]))
 
 # -------------------------------
 # TAB 3: Model Performance
 # -------------------------------
 with tab3:
     metrics = evaluate_model(model, X_test, y_test)
-    st.metric("R² Score", f"{metrics['r2']:.2f}")
+    r2 = metrics["r2"]
+    rmse = metrics["rmse"]
+
+    st.metric("R² Score", f"{r2:.2f}")
     with st.expander("ℹ️ What is R² Score?"):
-        st.write("R² measures how well the AI predicts comfort. Closer to 1 means better predictions.")
+        st.write(f"R² = {r2:.2f} → The model explains about {r2*100:.1f}% of the comfort variation.")
+        st.write("Beginner tip: closer to 1 = better, closer to 0 = weak.")
 
-    st.metric("RMSE", f"{metrics['rmse']:.2f}")
+    st.metric("RMSE", f"{rmse:.2f}")
     with st.expander("ℹ️ What is RMSE?"):
-        st.write("RMSE (Root Mean Square Error) shows the average prediction error. Lower values mean more accurate predictions.")
-
-    st.write("#### Feature Importances")
-    importances = model.feature_importances_
-    feat_df = pd.DataFrame({"Feature": feature_cols, "Importance": importances})
-    feat_chart = alt.Chart(feat_df).mark_bar(color=config["app"]["theme_color"]).encode(
-        x="Feature",
-        y="Importance"
-    )
-    st.altair_chart(feat_chart, use_container_width=True)
+        st.write(f"RMSE = {rmse:.2f} → On average, predictions are off by ±{rmse:.2f} units of comfort score.")
+        st.write("Beginner tip: lower is better.")
 
 # -------------------------------
 # TAB 4: About
@@ -273,6 +259,7 @@ with tab4:
     1. Adjust environment conditions (temperature, humidity, activity, sweat sensitivity).  
     2. View top recommended fabrics with **comfort percentages**.  
     3. Download professional reports in **Excel or PDF**.  
+    4. Explore the built-in **Fabric Knowledge Base**.  
 
     ### 🚀 Industry Applications  
     - **Sportswear brands** → test fabrics digitally before production  
