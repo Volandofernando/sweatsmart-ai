@@ -40,25 +40,48 @@ st.markdown(f"""
         background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
         box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
     }}
+    .metric-card {{# -------------------------------
+# Custom Styling (Dark Theme)
+# -------------------------------
+st.markdown(f"""
+<style>
+    .main {{
+        background-color: #0E1117;  /* Dark background */
+        color: #EAEAEA;  /* Light text */
+        font-family: 'Helvetica Neue', sans-serif;
+    }}
+    h1, h2, h3 {{
+        color: {config['app']['theme_color']};
+        font-weight: 700;
+    }}
+    .intro-box {{
+        padding: 1.2rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1E1E1E 0%, #2A2A2A 100%);
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.25);
+        color: #F5F5F5;
+    }}
     .metric-card {{
-        background: #FFFFFF;
+        background: #1C1C1C;
         padding: 1rem;
         border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         text-align: center;
         margin-bottom: 1rem;
+        color: #FFFFFF;
     }}
     .metric-value {{
         font-size: 1.5rem;
         font-weight: 700;
-        color: #1F2937;
+        color: {config['app']['theme_color']};
     }}
     .metric-label {{
         font-size: 0.9rem;
-        color: #6B7280;
+        color: #A0A0A0;
     }}
 </style>
 """, unsafe_allow_html=True)
+
 
 # -------------------------------
 # Title + Branding
