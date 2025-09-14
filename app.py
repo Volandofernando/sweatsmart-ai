@@ -17,14 +17,14 @@ st.set_page_config(page_title=config["app"]["title"], layout="wide")
 # Fabric Knowledge Base
 # -------------------------------
 fabric_info = {
-    "Cotton": "Breathable, soft, and moisture-absorbent. Common for casual and summer wear.",
-    "Polyester": "Durable, lightweight, quick-drying, but less breathable. Often used in sportswear.",
-    "Nylon": "Strong, elastic, and abrasion-resistant. Common in activewear and outerwear.",
-    "Wool": "Warm, insulating, and moisture-wicking. Suitable for cold climates.",
-    "Silk": "Luxurious, smooth, and breathable. Often used for formal or premium garments.",
-    "Linen": "Highly breathable, lightweight, and cooling. Ideal for hot weather.",
-    "Rayon": "Soft and versatile with silk-like feel. Used in both fashion and performance fabrics.",
-    "Spandex": "Stretchable and elastic. Often blended with other fibers for comfort and flexibility."
+    "Cotton": "Breathable, soft, and moisture-absorbent. Ideal for summer and casual wear.",
+    "Polyester": "Durable, lightweight, quick-drying, but less breathable. Common in sportswear.",
+    "Nylon": "Strong, elastic, and abrasion-resistant. Often used in activewear and outerwear.",
+    "Wool": "Warm, insulating, and moisture-wicking. Perfect for cold climates.",
+    "Silk": "Luxurious, smooth, and breathable. Popular for formal or premium garments.",
+    "Linen": "Highly breathable, lightweight, and cooling. Excellent for hot weather.",
+    "Rayon": "Soft and versatile with a silk-like feel. Used in both fashion and performance fabrics.",
+    "Spandex": "Stretchable and elastic. Blended with other fibers for comfort and flexibility."
 }
 
 # -------------------------------
@@ -103,18 +103,23 @@ model, scaler, X_test, y_test, df_clean = train_model(df, feature_cols, target_c
 # -------------------------------
 # Tabs
 # -------------------------------
-tab1, tab2, tab3, tab4 = st.tabs(["📌 Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
+tab1, tab2, tab3, tab4 = st.tabs(["📌 AI Comfort Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
 
 # -------------------------------
 # TAB 1: Recommendation
 # -------------------------------
 with tab1:
     with st.sidebar.expander("⚙️ Set Environment Conditions", expanded=True):
-        st.markdown("Adjust the parameters to simulate **real-world wearing scenarios**.")
-        temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28)
-        humidity = st.slider("💧 Humidity (%)", 10, 100, 60)
-        sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"])
-        activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"])
+        st.markdown("Adjust the parameters to simulate **real-world wearing scenarios**:")
+
+        temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28,
+                                help="Higher temperatures increase thermal stress and impact fabric comfort.")
+        humidity = st.slider("💧 Humidity (%)", 10, 100, 60,
+                             help="Humidity is the amount of moisture in the air. Higher humidity slows sweat evaporation, making fabrics feel warmer.")
+        sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"],
+                                             help="Represents how easily you sweat during activities.")
+        activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"],
+                                              help="Indicates your movement level, influencing heat and sweat generation.")
 
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
@@ -137,13 +142,15 @@ with tab1:
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
         explanation = fabric_info.get(fabric, "No description available.")
-        score = round(row[target_col], 2)
+        score_raw = row[target_col]
+        score = round(score_raw * 10, 1)   # convert to %
+        comfort_label = f"{score} %"
 
         with cols[i]:
             st.markdown(f"""
             <div class="metric-card">
                 <h4>🧵 {fabric}</h4>
-                <div class="metric-value">{score}</div>
+                <div class="metric-value">{comfort_label}</div>
                 <div class="metric-label">Comfort Score</div>
                 <p>{explanation}</p>
             </div>
@@ -151,15 +158,16 @@ with tab1:
 
         recommendations.append({
             "Fabric": fabric,
-            "Comfort Score": score,
+            "Comfort Score (%)": comfort_label,
             "Explanation": explanation
         })
 
     # Chart
     chart_data = pd.DataFrame(recommendations)
+    chart_data["Comfort Score (%)"] = chart_data["Comfort Score (%)"].str.replace("%", "").astype(float)
     chart = alt.Chart(chart_data).mark_bar(color=config["app"]["theme_color"]).encode(
         x=alt.X("Fabric", sort=None),
-        y="Comfort Score"
+        y=alt.Y("Comfort Score (%)", title="Comfort (%)")
     )
     st.altair_chart(chart, use_container_width=True)
 
@@ -168,7 +176,7 @@ with tab1:
     # -------------------------------
     st.markdown("### 📤 Export Recommendation Report")
 
-    # Export to Excel
+    # Excel
     excel_buffer = BytesIO()
     pd.DataFrame(recommendations).to_excel(excel_buffer, index=False)
     st.download_button(
@@ -178,7 +186,7 @@ with tab1:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # Export to PDF
+    # PDF
     def generate_pdf(recommendations):
         pdf_buffer = BytesIO()
         c = canvas.Canvas(pdf_buffer, pagesize=A4)
@@ -190,7 +198,7 @@ with tab1:
         c.setFont("Helvetica", 12)
         y = height - 100
         for rec in recommendations:
-            c.drawString(50, y, f"Fabric: {rec['Fabric']}  |  Comfort Score: {rec['Comfort Score']}")
+            c.drawString(50, y, f"Fabric: {rec['Fabric']}  |  Comfort Score: {rec['Comfort Score (%)']}")
             y -= 20
             c.setFont("Helvetica-Oblique", 10)
             c.drawString(70, y, f"Details: {rec['Explanation']}")
@@ -231,8 +239,13 @@ with tab2:
 # -------------------------------
 with tab3:
     metrics = evaluate_model(model, X_test, y_test)
-    st.metric("R² Score", metrics["r2"])
-    st.metric("RMSE", metrics["rmse"])
+    st.metric("R² Score", f"{metrics['r2']:.2f}")
+    with st.expander("ℹ️ What is R² Score?"):
+        st.write("R² measures how well the AI predicts comfort. Closer to 1 means better predictions.")
+
+    st.metric("RMSE", f"{metrics['rmse']:.2f}")
+    with st.expander("ℹ️ What is RMSE?"):
+        st.write("RMSE (Root Mean Square Error) shows the average prediction error. Lower values mean more accurate predictions.")
 
     st.write("#### Feature Importances")
     importances = model.feature_importances_
@@ -248,19 +261,23 @@ with tab3:
 # -------------------------------
 with tab4:
     st.markdown(f"""
-    **{config['app']['title']}**  
+    ## ℹ️ About {config['app']['title']}
+    
+    ### 🎯 Purpose  
     A professional AI system for **fabric comfort and performance recommendation**.  
 
-    🚀 Key Features:  
-    - AI-powered comfort prediction based on fabric & environment  
-    - Built-in **knowledge base** explaining each fabric type  
-    - Exportable reports in **Excel and PDF**  
-    - Optimized for **R&D, apparel design, and sportswear innovation**  
+    ### 🧵 Supported Fabrics  
+    Cotton, Polyester, Nylon, Wool, Silk, Linen, Rayon, Spandex  
 
-    🌍 Industry Use Cases:  
-    - **Sportswear brands**: digital testing of fabrics before production  
-    - **Fashion houses**: optimize seasonal fabric selection  
-    - **Healthcare textiles**: patient comfort and hospital uniforms  
+    ### 📊 How to Use  
+    1. Adjust environment conditions (temperature, humidity, activity, sweat sensitivity).  
+    2. View top recommended fabrics with **comfort percentages**.  
+    3. Download professional reports in **Excel or PDF**.  
 
-    👨‍💻 Built by: *Volando Fernando*  
+    ### 🚀 Industry Applications  
+    - **Sportswear brands** → test fabrics digitally before production  
+    - **Fashion houses** → seasonal fabric optimization  
+    - **Healthcare textiles** → patient comfort and uniforms  
+
+    👨‍💻 Built by: *Volando Fernando*
     """)
