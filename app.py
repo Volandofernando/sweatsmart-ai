@@ -225,6 +225,43 @@ with tab1:
     st.dataframe(pd.DataFrame(fabric_info.items(), columns=["Fabric", "Description"]))
 
 # -------------------------------
+# TAB 2: Dataset Insights
+# -------------------------------
+with tab2:
+    st.markdown("### 📊 Dataset Insights")
+
+    # Dataset Preview
+    st.markdown("#### 🔍 Preview of Fabric Dataset")
+    st.dataframe(df_clean.head(10))
+
+    # Summary Statistics
+    st.markdown("#### 📈 Summary Statistics")
+    st.write(df_clean.describe())
+
+    # Correlation Heatmap
+    st.markdown("#### 🔥 Correlation Heatmap (Features vs Comfort)")
+    corr = df_clean[feature_cols + [target_col]].corr().reset_index().melt("index")
+    heatmap = alt.Chart(corr).mark_rect().encode(
+        x="index:O",
+        y="variable:O",
+        color=alt.Color("value:Q", scale=alt.Scale(scheme="blues")),
+        tooltip=["index", "variable", alt.Tooltip("value:Q", format=".2f")]
+    )
+    st.altair_chart(heatmap, use_container_width=True)
+
+    # Top Comfort-Driving Fabrics
+    st.markdown("#### 🧵 Top Comfort-Performing Fabrics")
+    top_fabrics = df_clean.groupby("fabric_type")[target_col].mean().reset_index()
+    top_fabrics = top_fabrics.sort_values(by=target_col, ascending=False).head(5)
+    bar_chart = alt.Chart(top_fabrics).mark_bar(color=config["app"]["theme_color"]).encode(
+        x=alt.X("fabric_type", sort=None, title="Fabric"),
+        y=alt.Y(target_col, title="Average Comfort Score"),
+        tooltip=["fabric_type", alt.Tooltip(target_col, format=".2f")]
+    )
+    st.altair_chart(bar_chart, use_container_width=True)
+
+
+# -------------------------------
 # TAB 3: Model Performance
 # -------------------------------
 with tab3:
