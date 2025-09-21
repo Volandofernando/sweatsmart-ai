@@ -131,13 +131,6 @@ with tab1:
         activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"],
                                               help="Higher activity = more heat and sweat.")
 
-        # Beginner-friendly explanations
-        with st.expander("ℹ️ What do these mean?"):
-            st.write("**🌡️ Temperature** → Higher temps increase thermal stress.")
-            st.write("**💧 Humidity** → High humidity slows sweat evaporation, making fabrics feel warmer.")
-            st.write("**🧍 Sweat Sensitivity** → Some people sweat more easily, affecting comfort.")
-            st.write("**🏃 Activity Intensity** → Higher activity = more heat and sweat produced.")
-
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
     sweat_num, activity_num = sweat_map[sweat_sensitivity], activity_map[activity_intensity]
@@ -295,16 +288,6 @@ with tab3:
     with st.expander("ℹ️ What is RMSE?"):
         st.write(f"RMSE = {rmse:.2f} → On average, predictions are off by ±{rmse:.2f} units of comfort score.")
         st.write("Beginner tip: lower is better.")
-
-    # Feature Importance
-    st.markdown("#### 🔍 Feature Importance")
-    importances = model.feature_importances_
-    feat_df = pd.DataFrame({"Feature": feature_cols, "Importance": importances})
-    feat_chart = alt.Chart(feat_df).mark_bar(color=config["app"]["theme_color"]).encode(
-        x=alt.X("Feature", sort=None),
-        y="Importance"
-    )
-    st.altair_chart(feat_chart, use_container_width=True)
 
 # -------------------------------
 # TAB 4: About
