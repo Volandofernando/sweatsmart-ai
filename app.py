@@ -6,8 +6,6 @@ from io import BytesIO
 from utils import load_config, load_datasets, detect_features_and_target, train_model, evaluate_model
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from assets import fabric_info, fabric_images
-
 
 # -------------------------------
 # Load Config
@@ -19,14 +17,14 @@ st.set_page_config(page_title=config["app"]["title"], layout="wide")
 # Fabric Knowledge Base
 # -------------------------------
 fabric_info = {
-    "Cotton": "Breathable, soft, and moisture-absorbent. Ideal for summer and casual wear.",
-    "Polyester": "Durable, lightweight, quick-drying, but less breathable. Common in sportswear.",
-    "Nylon": "Strong, elastic, and abrasion-resistant. Often used in activewear and outerwear.",
-    "Wool": "Warm, insulating, and moisture-wicking. Perfect for cold climates.",
-    "Silk": "Luxurious, smooth, and breathable. Popular for formal or premium garments.",
-    "Linen": "Highly breathable, lightweight, and cooling. Excellent for hot weather.",
-    "Rayon": "Soft and versatile with a silk-like feel. Used in both fashion and performance fabrics.",
-    "Spandex": "Stretchable and elastic. Blended with other fibers for comfort and flexibility."
+    "Cotton": "Breathable, soft, and moisture-absorbent. Common for casual and summer wear.",
+    "Polyester": "Durable, lightweight, quick-drying, but less breathable. Often used in sportswear.",
+    "Nylon": "Strong, elastic, and abrasion-resistant. Common in activewear and outerwear.",
+    "Wool": "Warm, insulating, and moisture-wicking. Suitable for cold climates.",
+    "Silk": "Luxurious, smooth, and breathable. Often used for formal or premium garments.",
+    "Linen": "Highly breathable, lightweight, and cooling. Ideal for hot weather.",
+    "Rayon": "Soft and versatile with silk-like feel. Used in both fashion and performance fabrics.",
+    "Spandex": "Stretchable and elastic. Often blended with other fibers for comfort and flexibility."
 }
 
 # -------------------------------
@@ -34,43 +32,33 @@ fabric_info = {
 # -------------------------------
 st.markdown(f"""
 <style>
-    .main {{
-        background-color: #0E1117;  /* Dark background */
-        color: #EAEAEA;  /* Light text */
-        font-family: 'Helvetica Neue', sans-serif;
-    }}
-    h1, h2, h3 {{
-        color: {config['app']['theme_color']};
-        font-weight: 700;
-    }}
+    .main {{ background-color: #FAFAFA; }}
+    h1, h2, h3 {{ color: {config['app']['theme_color']}; font-family: 'Helvetica Neue', sans-serif; }}
     .intro-box {{
         padding: 1.2rem;
         border-radius: 12px;
-        background: linear-gradient(135deg, #1E1E1E 0%, #2A2A2A 100%);
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.25);
-        color: #F5F5F5;
+        background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
     }}
     .metric-card {{
-        background: #1C1C1C;
+        background: #FFFFFF;
         padding: 1rem;
         border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         text-align: center;
         margin-bottom: 1rem;
-        color: #FFFFFF;
     }}
     .metric-value {{
         font-size: 1.5rem;
         font-weight: 700;
-        color: {config['app']['theme_color']};
+        color: #1F2937;
     }}
     .metric-label {{
         font-size: 0.9rem;
-        color: #A0A0A0;
+        color: #6B7280;
     }}
 </style>
 """, unsafe_allow_html=True)
-
 
 # -------------------------------
 # Title + Branding
@@ -115,33 +103,23 @@ model, scaler, X_test, y_test, df_clean = train_model(df, feature_cols, target_c
 # -------------------------------
 # Tabs
 # -------------------------------
-tab1, tab2, tab3, tab4 = st.tabs(["📌 AI Comfort Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
+tab1, tab2, tab3, tab4 = st.tabs(["📌 Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
 
-# -------------------------------
-# TAB 1: Recommendation
-# -------------------------------
 # -------------------------------
 # TAB 1: Recommendation
 # -------------------------------
 with tab1:
     with st.sidebar.expander("⚙️ Set Environment Conditions", expanded=True):
-        st.markdown("Adjust the parameters to simulate **real-world wearing scenarios**:")
+        st.markdown("Adjust the parameters to simulate **real-world wearing scenarios**.")
+        temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28)
+        humidity = st.slider("💧 Humidity (%)", 10, 100, 60)
+        sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"])
+        activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"])
 
-        temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28,
-                                help="Higher temperatures increase thermal stress and impact fabric comfort.")
-        humidity = st.slider("💧 Humidity (%)", 10, 100, 60,
-                             help="Humidity = moisture in the air. High humidity slows sweat evaporation → fabrics feel warmer.")
-        sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"],
-                                             help="Represents how easily you sweat during activities.")
-        activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"],
-                                              help="Higher activity = more heat and sweat.")
-
-    # Map inputs
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
     sweat_num, activity_num = sweat_map[sweat_sensitivity], activity_map[activity_intensity]
 
-    # User input vector
     user_input = np.array([[sweat_num * 5,
                             800 + humidity * 5,
                             60 + activity_num * 10,
@@ -149,41 +127,39 @@ with tab1:
     user_input_scaled = scaler.transform(user_input)
 
     predicted_score = model.predict(user_input_scaled)[0]
-    predicted_percent = round(predicted_score * 100, 1)
     df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
     top_matches = df_clean.sort_values(by="predicted_diff").head(3)
 
-    # Show recommendations
     st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
     cols = st.columns(3)
+    recommendations = []
 
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
         explanation = fabric_info.get(fabric, "No description available.")
-        img_path = fabric_images.get(fabric, None)  # 👈 fetch image path
+        score = round(row[target_col], 2)
 
         with cols[i]:
-            # Show image if available
-            if img_path:
-                st.image(img_path, caption=fabric, use_container_width=True)
-
-            # Show metric card
             st.markdown(f"""
             <div class="metric-card">
                 <h4>🧵 {fabric}</h4>
-                <div class="metric-value">{round(row[target_col] * 100, 1)}%</div>
+                <div class="metric-value">{score}</div>
                 <div class="metric-label">Comfort Score</div>
                 <p>{explanation}</p>
             </div>
             """, unsafe_allow_html=True)
 
+        recommendations.append({
+            "Fabric": fabric,
+            "Comfort Score": score,
+            "Explanation": explanation
+        })
 
     # Chart
     chart_data = pd.DataFrame(recommendations)
-    chart_data["Comfort Score (%)"] = chart_data["Comfort Score (%)"].str.replace("%", "").astype(float)
     chart = alt.Chart(chart_data).mark_bar(color=config["app"]["theme_color"]).encode(
         x=alt.X("Fabric", sort=None),
-        y=alt.Y("Comfort Score (%)", title="Comfort (%)")
+        y="Comfort Score"
     )
     st.altair_chart(chart, use_container_width=True)
 
@@ -192,7 +168,7 @@ with tab1:
     # -------------------------------
     st.markdown("### 📤 Export Recommendation Report")
 
-    # Excel
+    # Export to Excel
     excel_buffer = BytesIO()
     pd.DataFrame(recommendations).to_excel(excel_buffer, index=False)
     st.download_button(
@@ -202,7 +178,7 @@ with tab1:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # PDF
+    # Export to PDF
     def generate_pdf(recommendations):
         pdf_buffer = BytesIO()
         c = canvas.Canvas(pdf_buffer, pagesize=A4)
@@ -214,7 +190,7 @@ with tab1:
         c.setFont("Helvetica", 12)
         y = height - 100
         for rec in recommendations:
-            c.drawString(50, y, f"Fabric: {rec['Fabric']}  |  Comfort Score: {rec['Comfort Score (%)']}")
+            c.drawString(50, y, f"Fabric: {rec['Fabric']}  |  Comfort Score: {rec['Comfort Score']}")
             y -= 20
             c.setFont("Helvetica-Oblique", 10)
             c.drawString(70, y, f"Details: {rec['Explanation']}")
@@ -233,90 +209,58 @@ with tab1:
         mime="application/pdf"
     )
 
-    # -------------------------------
-    # Extra Info Table
-    # -------------------------------
-    st.markdown("### 🧵 Fabric Knowledge Base")
-    st.dataframe(pd.DataFrame(fabric_info.items(), columns=["Fabric", "Description"]))
-
 # -------------------------------
 # TAB 2: Dataset Insights
 # -------------------------------
 with tab2:
-    st.markdown("### 📊 Dataset Insights")
-
-    # Dataset Preview
-    st.markdown("#### 🔍 Preview of Fabric Dataset")
+    st.markdown("### 📊 Dataset Overview")
     st.dataframe(df_clean.head(10))
 
-    # Summary Statistics
-    st.markdown("#### 📈 Summary Statistics")
+    st.write("#### Summary Statistics")
     st.write(df_clean.describe())
 
-    # Correlation Heatmap
-    st.markdown("#### 🔥 Correlation Heatmap (Features vs Comfort)")
+    st.write("#### Correlation Heatmap")
     corr = df_clean[feature_cols + [target_col]].corr().reset_index().melt("index")
     heatmap = alt.Chart(corr).mark_rect().encode(
-        x="index:O",
-        y="variable:O",
-        color=alt.Color("value:Q", scale=alt.Scale(scheme="blues")),
-        tooltip=["index", "variable", alt.Tooltip("value:Q", format=".2f")]
+        x="index:O", y="variable:O", color="value:Q"
     )
     st.altair_chart(heatmap, use_container_width=True)
-
-    # Top Comfort-Driving Fabrics
-    st.markdown("#### 🧵 Top Comfort-Performing Fabrics")
-    top_fabrics = df_clean.groupby("fabric_type")[target_col].mean().reset_index()
-    top_fabrics = top_fabrics.sort_values(by=target_col, ascending=False).head(5)
-    bar_chart = alt.Chart(top_fabrics).mark_bar(color=config["app"]["theme_color"]).encode(
-        x=alt.X("fabric_type", sort=None, title="Fabric"),
-        y=alt.Y(target_col, title="Average Comfort Score"),
-        tooltip=["fabric_type", alt.Tooltip(target_col, format=".2f")]
-    )
-    st.altair_chart(bar_chart, use_container_width=True)
-
 
 # -------------------------------
 # TAB 3: Model Performance
 # -------------------------------
 with tab3:
     metrics = evaluate_model(model, X_test, y_test)
-    r2 = metrics["r2"]
-    rmse = metrics["rmse"]
+    st.metric("R² Score", metrics["r2"])
+    st.metric("RMSE", metrics["rmse"])
 
-    st.metric("R² Score", f"{r2:.2f}")
-    with st.expander("ℹ️ What is R² Score?"):
-        st.write(f"R² = {r2:.2f} → The model explains about {r2*100:.1f}% of the comfort variation.")
-        st.write("Beginner tip: closer to 1 = better, closer to 0 = weak.")
-
-    st.metric("RMSE", f"{rmse:.2f}")
-    with st.expander("ℹ️ What is RMSE?"):
-        st.write(f"RMSE = {rmse:.2f} → On average, predictions are off by ±{rmse:.2f} units of comfort score.")
-        st.write("Beginner tip: lower is better.")
+    st.write("#### Feature Importances")
+    importances = model.feature_importances_
+    feat_df = pd.DataFrame({"Feature": feature_cols, "Importance": importances})
+    feat_chart = alt.Chart(feat_df).mark_bar(color=config["app"]["theme_color"]).encode(
+        x="Feature",
+        y="Importance"
+    )
+    st.altair_chart(feat_chart, use_container_width=True)
 
 # -------------------------------
 # TAB 4: About
 # -------------------------------
 with tab4:
     st.markdown(f"""
-    ## ℹ️ About {config['app']['title']}
-    
-    ### 🎯 Purpose  
+    **{config['app']['title']}**  
     A professional AI system for **fabric comfort and performance recommendation**.  
 
-    ### 🧵 Supported Fabrics  
-    Cotton, Polyester, Nylon, Wool, Silk, Linen, Rayon, Spandex  
+    🚀 Key Features:  
+    - AI-powered comfort prediction based on fabric & environment  
+    - Built-in **knowledge base** explaining each fabric type  
+    - Exportable reports in **Excel and PDF**  
+    - Optimized for **R&D, apparel design, and sportswear innovation**  
 
-    ### 📊 How to Use  
-    1. Adjust environment conditions (temperature, humidity, activity, sweat sensitivity).  
-    2. View top recommended fabrics with **comfort percentages**.  
-    3. Download professional reports in **Excel or PDF**.  
-    4. Explore the built-in **Fabric Knowledge Base**.  
+    🌍 Industry Use Cases:  
+    - **Sportswear brands**: digital testing of fabrics before production  
+    - **Fashion houses**: optimize seasonal fabric selection  
+    - **Healthcare textiles**: patient comfort and hospital uniforms  
 
-    ### 🚀 Industry Applications  
-    - **Sportswear brands** → test fabrics digitally before production  
-    - **Fashion houses** → seasonal fabric optimization  
-    - **Healthcare textiles** → patient comfort and uniforms  
-
-    👨‍💻 Built by: *Volando Fernando*
+    👨‍💻 Built by: *Volando Fernando*  
     """)
