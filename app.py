@@ -173,6 +173,27 @@ with tab1:
             "Explanation": explanation
         })
 
+    for i, (_, row) in enumerate(top_matches.iterrows()):
+    fabric = row.get("fabric_type", "Unknown")
+    explanation = fabric_info.get(fabric, "No description available.")
+    img_path = fabric_images.get(fabric, None)   # 👈 fetch image path
+
+    with cols[i]:
+        # Show image if available
+        if img_path:
+            st.image(img_path, caption=fabric, use_container_width=True)
+
+        # Show metric card
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>🧵 {fabric}</h4>
+            <div class="metric-value">{round(row[target_col], 2)}%</div>
+            <div class="metric-label">Comfort Score</div>
+            <p>{explanation}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
     # Chart
     chart_data = pd.DataFrame(recommendations)
     chart_data["Comfort Score (%)"] = chart_data["Comfort Score (%)"].str.replace("%", "").astype(float)
