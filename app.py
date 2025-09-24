@@ -6,6 +6,8 @@ from io import BytesIO
 from utils import load_config, load_datasets, detect_features_and_target, train_model, evaluate_model
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from assets import fabric_info, fabric_images
+
 
 # -------------------------------
 # Load Config
