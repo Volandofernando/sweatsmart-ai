@@ -30,33 +30,43 @@ fabric_info = {
 # -------------------------------
 # Custom Styling
 # -------------------------------
-st.markdown(f"""
+st.markdown("""
 <style>
-    .main {{ background-color: #FAFAFA; }}
-    h1, h2, h3 {{ color: {config['app']['theme_color']}; font-family: 'Helvetica Neue', sans-serif; }}
-    .intro-box {{
-        padding: 1.2rem;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
-    }}
-    .metric-card {{
-        background: #FFFFFF;
-        padding: 1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        text-align: center;
-        margin-bottom: 1rem;
-    }}
-    .metric-value {{
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1F2937;
-    }}
-    .metric-label {{
-        font-size: 0.9rem;
-        color: #6B7280;
-    }}
+.recommend-card {
+    background: #1E1E1E;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.5);
+    text-align: center;
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease;
+}
+.recommend-card:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 6px 16px rgba(0,0,0,0.6);
+}
+.recommend-img {
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    max-height: 150px;
+    object-fit: cover;
+}
+.recommend-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-top: 0.5rem;
+}
+.recommend-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4ADE80;  /* green accent for scores */
+}
+.recommend-desc {
+    font-size: 0.9rem;
+    color: #B0B0B0;
+    margin-top: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
