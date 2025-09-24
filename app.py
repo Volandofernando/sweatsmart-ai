@@ -120,6 +120,9 @@ tab1, tab2, tab3, tab4 = st.tabs(["📌 AI Comfort Recommender", "📊 Insights"
 # -------------------------------
 # TAB 1: Recommendation
 # -------------------------------
+# -------------------------------
+# TAB 1: Recommendation
+# -------------------------------
 with tab1:
     with st.sidebar.expander("⚙️ Set Environment Conditions", expanded=True):
         st.markdown("Adjust the parameters to simulate **real-world wearing scenarios**:")
@@ -133,10 +136,12 @@ with tab1:
         activity_intensity = st.select_slider("🏃 Activity Intensity", ["Low", "Moderate", "High"],
                                               help="Higher activity = more heat and sweat.")
 
+    # Map inputs
     sweat_map = {"Low": 1, "Medium": 2, "High": 3}
     activity_map = {"Low": 1, "Moderate": 2, "High": 3}
     sweat_num, activity_num = sweat_map[sweat_sensitivity], activity_map[activity_intensity]
 
+    # User input vector
     user_input = np.array([[sweat_num * 5,
                             800 + humidity * 5,
                             60 + activity_num * 10,
@@ -144,56 +149,33 @@ with tab1:
     user_input_scaled = scaler.transform(user_input)
 
     predicted_score = model.predict(user_input_scaled)[0]
-    predicted_percent = round(predicted_score * 100, 1)  # interpret as %
+    predicted_percent = round(predicted_score * 100, 1)
     df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
     top_matches = df_clean.sort_values(by="predicted_diff").head(3)
 
+    # Show recommendations
     st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
     cols = st.columns(3)
-    recommendations = []
 
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
         explanation = fabric_info.get(fabric, "No description available.")
-        score_raw = row[target_col]
-        score = round(score_raw * 100, 1)
-        comfort_label = f"{score} %"
+        img_path = fabric_images.get(fabric, None)  # 👈 fetch image path
 
         with cols[i]:
+            # Show image if available
+            if img_path:
+                st.image(img_path, caption=fabric, use_container_width=True)
+
+            # Show metric card
             st.markdown(f"""
             <div class="metric-card">
                 <h4>🧵 {fabric}</h4>
-                <div class="metric-value">{comfort_label}</div>
+                <div class="metric-value">{round(row[target_col] * 100, 1)}%</div>
                 <div class="metric-label">Comfort Score</div>
                 <p>{explanation}</p>
             </div>
             """, unsafe_allow_html=True)
-
-        recommendations.append({
-            "Fabric": fabric,
-            "Comfort Score (%)": comfort_label,
-            "Explanation": explanation
-        })
-
-    for i, (_, row) in enumerate(top_matches.iterrows()):
-    fabric = row.get("fabric_type", "Unknown")
-    explanation = fabric_info.get(fabric, "No description available.")
-    img_path = fabric_images.get(fabric, None)   # 👈 fetch image path
-
-    with cols[i]:
-        # Show image if available
-        if img_path:
-            st.image(img_path, caption=fabric, use_container_width=True)
-
-        # Show metric card
-        st.markdown(f"""
-        <div class="metric-card">
-            <h4>🧵 {fabric}</h4>
-            <div class="metric-value">{round(row[target_col], 2)}%</div>
-            <div class="metric-label">Comfort Score</div>
-            <p>{explanation}</p>
-        </div>
-        """, unsafe_allow_html=True)
 
 
     # Chart
