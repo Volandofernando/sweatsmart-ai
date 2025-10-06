@@ -9,7 +9,7 @@ from reportlab.pdfgen import canvas
 
 
 st.markdown("""
-<meta name="google-site-verification" content="ctQWJxGy7sz--UgmKe6CmYqntLBnIUT0ItEuoYdr858" />
+<meta name="google-site-verification" content="08MTMTi_YOTmXL5ybMc7w2pBn7w1aD61dYXHJkO2TtA" />
 """, unsafe_allow_html=True)
 
 # -------------------------------
