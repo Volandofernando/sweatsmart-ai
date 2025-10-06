@@ -7,6 +7,19 @@ from utils import load_config, load_datasets, detect_features_and_target, train_
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="google-site-verification" content="_NhjPZ3SK1IoAqj4b04D7AlhSSPzpgfZSjmuZq3nE9E" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Site Verification - SweatSmart AI Fabrics</title>
+  </head>
+  <body>
+    <h2>Google Site Verification</h2>
+    <p>This page is for verifying ownership of the <strong>SweatSmart AI Fabrics</strong> Streamlit app.</p>
+  </body>
+</html>
 st.markdown("""
 <meta name="google-site-verification" content="_NhjPZ3SK1IoAqj4b04D7AlhSSPzpgfZSjmuZq3nE9E" />
 """, unsafe_allow_html=True)
