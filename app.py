@@ -315,3 +315,9 @@ with tab4:
 
     👨‍💻 Built by: *Volando Fernando*
     """)
+
+st.markdown("""
+---
+🔗 **Project Repository:** [GitHub – VolandoFernando/sweatsmart-ai](https://github.com/VolandoFernando/sweatsmart-ai)  
+📘 **Author:** Volando Fernando | University of West London (UWL)
+""")
