@@ -7,6 +7,12 @@ from utils import load_config, load_datasets, detect_features_and_target, train_
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
+
+import streamlit as st
+st.markdown("""
+<meta name="google-site-verification" content="ctQWJxGy7sz--UgmKe6CmYqntLBnIUT0ItEuoYdr858" />
+""", unsafe_allow_html=True)
+
 # -------------------------------
 # Load Config
 # -------------------------------
