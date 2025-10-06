@@ -7,13 +7,6 @@ from utils import load_config, load_datasets, detect_features_and_target, train_
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-# Serve verification text
-if st.experimental_get_query_params().get("google_verify"):
-    st.write("google-site-verification: google2281e0ac86d8874d")
-    st.stop()
-
-st.title("SweatSmart AI Fabrics")
-
 # -------------------------------
 # Load Config
 # -------------------------------
