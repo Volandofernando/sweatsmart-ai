@@ -7,10 +7,8 @@ from utils import load_config, load_datasets, detect_features_and_target, train_
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-
-st.markdown("""
 <meta name="google-site-verification" content="08MTMTi_YOTmXL5ybMc7w2pBn7w1aD61dYXHJkO2TtA" />
-""", unsafe_allow_html=True)
+
 
 # -------------------------------
 # Load Config
