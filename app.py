@@ -11,6 +11,16 @@ st.markdown("""
 <meta name="google-site-verification" content="_NhjPZ3SK1IoAqj4b04D7AlhSSPzpgfZSjmuZq3nE9E" />
 """, unsafe_allow_html=True)
 
+st.sidebar.title("🧭 Navigation")
+page = st.sidebar.radio("Go to:", ["🏠 Home", "🧵 AI Fabric Quiz", "🤖 SweatyBot"])
+
+if page == "🏠 Home":
+    st.write("Welcome to SweatSmart AI Fabrics!")
+elif page == "🧵 AI Fabric Quiz":
+    import quiz  # (if you create a quiz.py later)
+elif page == "🤖 SweatyBot":
+    import sweatybot
+
 # -------------------------------
 # Load Config
 # -------------------------------
