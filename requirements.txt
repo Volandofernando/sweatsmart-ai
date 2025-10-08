@@ -8,3 +8,4 @@ altair
 joblib
 reportlab
 xlsxwriter
+openai>=1.0.0
