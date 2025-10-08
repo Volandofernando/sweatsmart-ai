@@ -6,6 +6,8 @@ from io import BytesIO
 from utils import load_config, load_datasets, detect_features_and_target, train_model, evaluate_model
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+
 
 st.markdown("""
 <meta name="google-site-verification" content="_NhjPZ3SK1IoAqj4b04D7AlhSSPzpgfZSjmuZq3nE9E" />
