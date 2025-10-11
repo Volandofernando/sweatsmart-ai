@@ -23,7 +23,7 @@ st.divider()
 # ------------------ LOAD API KEY ------------------
 # 🔐 Store your API key safely in Streamlit Cloud under "Secrets" → "openai"
 try:
-    client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+    client = OpenAI(api_key=st.secrets["openai"]["sk-...rswA"])
 except Exception:
     st.error("⚠️ Missing API key! Please add it to Streamlit Secrets under `openai.api_key`.")
     st.stop()
