@@ -1,6 +1,5 @@
-# sweat_smart_bot.py
+# sweat_smart_bot_fixed.py
 import streamlit as st
-from openai import OpenAI
 import pandas as pd
 import json
 
@@ -17,16 +16,22 @@ st.caption("Helping you find sweat-proof, eco-friendly, and comfy fabrics based 
 
 # ----------------- API Key -----------------
 if "api_key" not in st.session_state:
-    st.session_state.api_key = st.secrets.get("openai", {}).get("api_key", "")
+    try:
+        st.session_state.api_key = st.secrets["openai"]["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"]
+    except KeyError:
+        st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets as `openai.api_key`.")
+        st.info("Go to Streamlit Cloud → Settings → Secrets → Add `openai.api_key = your_api_key_here`")
+        st.stop()
 
 api_key = st.session_state.api_key
 
-if not api_key:
-    st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets as `openai.api_key`.")
-    st.info("Go to Streamlit Cloud → Settings → Secrets → Add `openai.api_key = your_api_key_here`")
-    st.stop()
+# ----------------- Persistent OpenAI Client -----------------
+@st.cache_resource
+def get_openai_client(api_key):
+    from openai import OpenAI
+    return OpenAI(api_key=api_key)
 
-client = OpenAI(api_key=api_key)
+client = get_openai_client(api_key)
 
 # ----------------- Sidebar Personalization -----------------
 with st.sidebar:
@@ -35,9 +40,8 @@ with st.sidebar:
     climate = st.selectbox("Climate", ["Hot", "Humid", "Cold", "Moderate"])
     eco_friendly = st.checkbox("Prefer Eco-friendly fabrics?", value=True)
 
-# ----------------- Chat History -----------------
+# ----------------- Session State for Chat -----------------
 if "messages" not in st.session_state:
-    # Initial system prompt
     system_prompt = (
         f"You are SweatyBot, a helpful fabric advisor. "
         f"The user prefers '{activity}' activity, in '{climate}' climate. "
@@ -47,6 +51,7 @@ if "messages" not in st.session_state:
         {"role": "system", "content": system_prompt},
         {"role": "assistant", "content": "Hi there 👋 I'm SweatyBot! Ask me anything about sweat-resistant, breathable, or eco-friendly fabrics."}
     ]
+    st.session_state.system_added = True
 
 # ----------------- Display Chat Messages -----------------
 for msg in st.session_state.messages:
@@ -66,7 +71,6 @@ if prompt := st.chat_input("Ask SweatyBot something about fabrics..."):
         message_placeholder.markdown("💭 Thinking...")
 
         try:
-            # Call OpenAI LLM
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=st.session_state.messages,
@@ -80,7 +84,7 @@ if prompt := st.chat_input("Ask SweatyBot something about fabrics..."):
         message_placeholder.markdown(reply)
         st.session_state.messages.append({"role": "assistant", "content": reply})
 
-        # ----------------- Optional: Try parsing JSON for fabric table -----------------
+        # ----------------- Optional: Parse JSON for Table -----------------
         try:
             fabrics = json.loads(reply)
             if isinstance(fabrics, list):
