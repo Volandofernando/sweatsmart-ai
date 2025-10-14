@@ -8,5 +8,5 @@ altair
 joblib
 reportlab
 xlsxwriter
-pip install --upgrade openai
+openai
 
