@@ -17,7 +17,7 @@ st.caption("Helping you find sweat-proof, eco-friendly, and comfy fabrics based 
 # ----------------- API Key -----------------
 if "api_key" not in st.session_state:
     try:
-        st.session_state.api_key = st.secrets["openai"]["app_key"]
+        st.session_state.api_key = st.secrets["openai"]["api_key"]
     except KeyError:
         st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets as `openai.api_key`.")
         st.info("Go to Streamlit Cloud → Settings → Secrets → Add `openai.api_key = your_api_key_here`")
