@@ -20,9 +20,6 @@ elif page == "🧵 AI Fabric Quiz":
     import quiz  # (if you create a quiz.py later)
 elif page == "🤖 SweatyBot":
     import sweatybot
-elif page == "🤖 SweatyBot":
-    import sweatybot
-
 
 # -------------------------------
 # Load Config
