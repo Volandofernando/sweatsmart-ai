@@ -1,9 +1,11 @@
-# sweat_smart_bot_fixed.py
 import streamlit as st
 import pandas as pd
 import json
+from openai import OpenAI
 
-# ----------------- Page Setup -----------------
+# ------------------------------
+# 🔧 PAGE CONFIGURATION
+# ------------------------------
 st.set_page_config(
     page_title="💬 SweatyBot – Fabric Advisor",
     page_icon="👕",
@@ -12,90 +14,103 @@ st.set_page_config(
 )
 
 st.title("💬 Meet SweatyBot – Your Fabric Advisor")
-st.caption("Helping you find sweat-proof, eco-friendly, and comfy fabrics based on science and your needs!")
+st.caption("👕 Helping you find sweat-proof, eco-friendly, and comfy fabrics based on science and your needs!")
 
-# ----------------- API Key -----------------
+# ------------------------------
+# 🔑 API KEY HANDLING
+# ------------------------------
 if "api_key" not in st.session_state:
-    try:
-        st.session_state.api_key = st.secrets["openai"]["api_key"]
-    except KeyError:
-        st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets as `openai.api_key`.")
-        st.info("Go to Streamlit Cloud → Settings → Secrets → Add `openai.api_key = your_api_key_here`")
+    if "openai" in st.secrets and "api_key" in st.secrets["openai"]:
+        st.session_state.api_key = st.secrets["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"]["api_key"]
+    else:
+        st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets.")
+        st.info("""
+        👉 Go to Streamlit Cloud → ⚙️ Settings → Secrets → Add this:
+        ```
+        [openai]
+        api_key = "your_api_key_here"
+        ```
+        """)
         st.stop()
 
-api_key = st.session_state.api_key
+client = OpenAI(api_key=st.session_state.api_key)
 
-# ----------------- Persistent OpenAI Client -----------------
-@st.cache_resource
-def get_openai_client(api_key):
-    from openai import OpenAI
-    return OpenAI(api_key=api_key)
-
-client = get_openai_client(api_key)
-
-# ----------------- Sidebar Personalization -----------------
+# ------------------------------
+# 🧵 SIDEBAR PERSONALIZATION
+# ------------------------------
 with st.sidebar:
-    st.header("🛠 Personalize Your Recommendations")
-    activity = st.selectbox("Activity Level", ["Low", "Moderate", "High"])
-    climate = st.selectbox("Climate", ["Hot", "Humid", "Cold", "Moderate"])
-    eco_friendly = st.checkbox("Prefer Eco-friendly fabrics?", value=True)
+    st.header("🧭 Personalize Your Preferences")
+    activity = st.selectbox("🏃 Activity Level", ["Low", "Moderate", "High"])
+    climate = st.selectbox("🌡️ Climate Type", ["Hot", "Humid", "Cold", "Moderate"])
+    eco_friendly = st.checkbox("🌱 Prefer Eco-friendly Fabrics?", value=True)
+    st.markdown("---")
+    st.markdown("💡 **Tip:** Adjust these before chatting for more personalized recommendations!")
 
-# ----------------- Session State for Chat -----------------
+# ------------------------------
+# 🧠 SESSION STATE MANAGEMENT
+# ------------------------------
 if "messages" not in st.session_state:
     system_prompt = (
-        f"You are SweatyBot, a helpful fabric advisor. "
-        f"The user prefers '{activity}' activity, in '{climate}' climate. "
-        f"Eco-friendly fabrics preference: {eco_friendly}."
+        f"You are SweatyBot, an expert fabric advisor. "
+        f"The user prefers '{activity}' activity, in a '{climate}' climate. "
+        f"Eco-friendly fabrics preference: {eco_friendly}. "
+        f"Always give scientific but simple explanations about fabrics — their breathability, moisture control, and comfort."
     )
     st.session_state.messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "assistant", "content": "Hi there 👋 I'm SweatyBot! Ask me anything about sweat-resistant, breathable, or eco-friendly fabrics."}
+        {"role": "assistant", "content": "Hi 👋 I'm SweatyBot! Ask me anything about sweat-resistant, breathable, or eco-friendly fabrics."}
     ]
-    st.session_state.system_added = True
 
-# ----------------- Display Chat Messages -----------------
+# ------------------------------
+# 💬 DISPLAY CHAT MESSAGES
+# ------------------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# ----------------- User Input -----------------
-if prompt := st.chat_input("Ask SweatyBot something about fabrics..."):
+# ------------------------------
+# ✏️ USER INPUT & RESPONSE
+# ------------------------------
+if user_input := st.chat_input("Ask me about fabrics, comfort, or recommendations..."):
     # Add user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(user_input)
 
-    # AI response
+    # Assistant placeholder
     with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        message_placeholder.markdown("💭 Thinking...")
+        placeholder = st.empty()
+        placeholder.markdown("💭 Thinking...")
 
         try:
+            # API call
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=st.session_state.messages,
+                temperature=0.7,
                 max_tokens=500,
-                temperature=0.7
             )
             reply = response.choices[0].message.content
         except Exception as e:
-            reply = f"⚠️ Oops! Something went wrong: {str(e)}"
-
-        message_placeholder.markdown(reply)
+            reply = f"⚠️ Error: {str(e)}"
+        
+        placeholder.markdown(reply)
         st.session_state.messages.append({"role": "assistant", "content": reply})
 
-        # ----------------- Optional: Parse JSON for Table -----------------
+        # Optional JSON Table Rendering
         try:
             fabrics = json.loads(reply)
             if isinstance(fabrics, list):
                 df = pd.DataFrame(fabrics)
-                st.markdown("### 🧵 Fabric Recommendations")
+                st.markdown("### 🧵 Recommended Fabrics")
                 st.table(df)
-        except:
+        except Exception:
             pass
 
-# ----------------- Collapsible Chat History -----------------
+# ------------------------------
+# 📜 CHAT HISTORY
+# ------------------------------
 with st.expander("💬 View Full Chat History"):
     for msg in st.session_state.messages:
-        role = "You" if msg["role"] == "user" else "SweatyBot"
+        role = "👤 You" if msg["role"] == "user" else "🤖 SweatyBot"
         st.markdown(f"**{role}:** {msg['content']}")
