@@ -21,17 +21,18 @@ st.caption("👕 Helping you find sweat-proof, eco-friendly, and comfy fabrics b
 # ------------------------------
 if "api_key" not in st.session_state:
     if "openai" in st.secrets and "api_key" in st.secrets["openai"]:
-        st.session_state.api_key = st.secrets["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"]["api_key"]
+        st.session_state.api_key = st.secrets["openai"]["api_key"]
     else:
         st.warning("⚠️ Missing API key! Please add it to Streamlit Secrets.")
         st.info("""
         👉 Go to Streamlit Cloud → ⚙️ Settings → Secrets → Add this:
         ```
         [openai]
-        api_key = "your_api_key_here"
+        api_key = "sk-proj-your_key_here"
         ```
         """)
         st.stop()
+
 
 client = OpenAI(api_key=st.session_state.api_key)
 
