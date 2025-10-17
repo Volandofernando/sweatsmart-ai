@@ -18,7 +18,7 @@ if page == "🏠 Home":
     st.write("Welcome to SweatSmart AI Fabrics!")
 elif page == "🧵 AI Fabric Quiz":
     import quiz  # (if you create a quiz.py later)
-elif page == "🤖 SweatyBot":
+elif page == "🤖 sweatbot.py2":
     import sweatybot
 
 # -------------------------------
