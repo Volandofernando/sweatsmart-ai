@@ -60,7 +60,7 @@ def render():
 
             try:
                 response = client.chat.completions.create(
-                    model="mixtral-8x7b-32768",  # Groq's best model
+                    model="llama3-70b-8192",  # Groq's best model
                     messages=st.session_state.messages,
                     temperature=0.7,
                     max_tokens=500
