@@ -2,30 +2,22 @@
 import streamlit as st
 import json
 import time
+# Replace this part 👇
+# from openai import OpenAI
+# client = OpenAI(api_key=api_key)
 
-try:
-    from openai import OpenAI
-except ImportError:
-    import openai as _openai
-    OpenAI = None
+# With this 👇
+from groq import Groq
 
 def render():
     st.header("💬 SweatyBot – Your AI Fabric Advisor")
-    st.caption("👕 Smart, scientific, and simple advice on fabrics, comfort & sweat control.")
 
-    # Check for API key
-    if "openai" not in st.secrets or "api_key" not in st.secrets["openai"]:
-        st.error("⚠️ Missing OpenAI API key! Please add it to Streamlit Secrets.")
-        st.info("""
-        Go to: **Settings → Secrets → Add this:**
-        ```
-        [openai]
-        api_key = "your_key_here"
-        ```
-        """)
+    if "groq" not in st.secrets or "api_key" not in st.secrets["groq"]:
+        st.error("⚠️ Missing Groq API key! Add it in Streamlit Secrets.")
         st.stop()
 
-    api_key = st.secrets["openai"]["api_key"]
+    api_key = st.secrets["groq"]["api_key"]
+    client = Groq(api_key=api_key)
 
     # Create client
     try:
