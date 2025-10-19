@@ -8,5 +8,4 @@ altair
 joblib
 reportlab
 xlsxwriter
-OpenAI
-
+groq
