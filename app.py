@@ -16,8 +16,6 @@ page = st.sidebar.radio("Go to:", ["🏠 Home", "🧵 AI Fabric Quiz", "🤖 Swe
 
 if page == "🏠 Home":
     st.write("Welcome to SweatSmart AI Fabrics!")
-elif page == "🧵 AI Fabric Quiz":
-    import quiz  # (if you create a quiz.py later)
 if page == "🤖 SweatyBot":
     import sweatybot
     sweatybot.render()
