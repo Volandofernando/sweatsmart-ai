@@ -12,7 +12,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to:", ["🏠 Home", "🧵 AI Fabric Quiz", "🤖 SweatyBot"])
+page = st.sidebar.radio("Go to:", ["🏠 Home", "🤖 SweatyBot"])
 
 if page == "🏠 Home":
     st.write("Welcome to SweatSmart AI Fabrics!")
