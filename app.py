@@ -154,37 +154,14 @@ with tab1:
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
-    # Predict comfort score
-predicted_score = float(model.predict(user_input_scaled)[0])
+    predicted_score = model.predict(user_input_scaled)[0]
+    predicted_percent = round(predicted_score * 100, 1)  # interpret as %
+    df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
+    top_matches = df_clean.sort_values(by="predicted_diff").head(3)
 
-# --- Normalization: Scale prediction into realistic 0–100 range ---
-min_score = float(df_clean[target_col].min())
-max_score = float(df_clean[target_col].max())
-
-# Normalize prediction to percentage range (industry realistic)
-predicted_percent = round(((predicted_score - min_score) / (max_score - min_score)) * 100, 1)
-predicted_percent = max(0, min(predicted_percent, 100))  # clamp between 0–100
-
-# --- Industrial weighting logic ---
-# Fabrics that perform better under current environment get slight boost
-df_clean["comfort_weighted"] = df_clean[target_col]
-
-# Increase weight if humidity and temperature are high
-if humidity > 70:
-    df_clean["comfort_weighted"] += 0.05 * humidity
-if temperature > 32:
-    df_clean["comfort_weighted"] += 0.03 * temperature
-if sweat_sensitivity == "High":
-    df_clean["comfort_weighted"] += 5
-
-# --- Ranking fabrics ---
-# Rank based on proximity to predicted score and weighted performance
-df_clean["predicted_diff"] = abs(df_clean["comfort_weighted"] - predicted_score)
-top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
-
-st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
-cols = st.columns(3)
-recommendations = []
+    st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
+    cols = st.columns(3)
+    recommendations = []
 
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
