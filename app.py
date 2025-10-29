@@ -154,10 +154,20 @@ with tab1:
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
-    predicted_score = model.predict(user_input_scaled)[0]
-    predicted_percent = round(predicted_score * 100, 1)  # interpret as %
-    df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
-    top_matches = df_clean.sort_values(by="predicted_diff").head(3)
+# Predict comfort score using trained model
+predicted_score = model.predict(user_input_scaled)[0]
+
+# ✅ Normalize the predicted comfort to a 0–100% scale (instead of raw numeric value)
+# Assuming comfort scores in dataset are approximately within 0–800 range
+predicted_percent = round((float(predicted_score) / 800) * 100, 1)
+
+# Clamp values to avoid outliers (e.g., >100%)
+predicted_percent = max(0, min(predicted_percent, 100))
+
+# Identify top matching fabrics based on minimal difference from prediction
+df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
+top_matches = df_clean.sort_values(by="predicted_diff").head(3)
+
 
     st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
     cols = st.columns(3)
