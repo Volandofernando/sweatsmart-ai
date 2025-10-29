@@ -154,7 +154,7 @@ with tab1:
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
-# Predict comfort score
+    # Predict comfort score
 predicted_score = float(model.predict(user_input_scaled)[0])
 
 # --- Normalization: Scale prediction into realistic 0–100 range ---
@@ -182,9 +182,10 @@ if sweat_sensitivity == "High":
 df_clean["predicted_diff"] = abs(df_clean["comfort_weighted"] - predicted_score)
 top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
 
-st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
-cols = st.columns(3)
-recommendations = []
+
+    st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
+    cols = st.columns(3)
+    recommendations = []
 
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
