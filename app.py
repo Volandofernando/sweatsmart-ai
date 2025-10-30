@@ -154,37 +154,100 @@ with tab1:
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
-    predicted_score = model.predict(user_input_scaled)[0]
-    predicted_percent = round(predicted_score * 100, 1)  # interpret as %
-    df_clean["predicted_diff"] = abs(df_clean[target_col] - predicted_score)
-    top_matches = df_clean.sort_values(by="predicted_diff").head(3)
+    # -------------------------------
+# 🧠 Enhanced Comfort Prediction & AI Reasoning
+# -------------------------------
+# Predict comfort score
+predicted_score = float(model.predict(user_input_scaled)[0])
 
-    st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
-    cols = st.columns(3)
-    recommendations = []
+# Normalize prediction to 0–100 range for interpretability
+min_score = float(df_clean[target_col].min())
+max_score = float(df_clean[target_col].max())
+predicted_percent = round(((predicted_score - min_score) / (max_score - min_score)) * 100, 1)
+predicted_percent = max(0, min(predicted_percent, 100))  # clamp 0–100
 
-    for i, (_, row) in enumerate(top_matches.iterrows()):
-        fabric = row.get("fabric_type", "Unknown")
-        explanation = fabric_info.get(fabric, "No description available.")
-        score_raw = row[target_col]
-        score = round(score_raw * 100, 1)
-        comfort_label = f"{score} %"
+# --- Industrial weighting adjustments ---
+df_clean["comfort_weighted"] = df_clean[target_col]
 
-        with cols[i]:
-            st.markdown(f"""
-            <div class="metric-card">
-                <h4>🧵 {fabric}</h4>
-                <div class="metric-value">{comfort_label}</div>
-                <div class="metric-label">Comfort Score</div>
-                <p>{explanation}</p>
-            </div>
-            """, unsafe_allow_html=True)
+if humidity > 70:
+    df_clean["comfort_weighted"] += 0.05 * humidity
+if temperature > 32:
+    df_clean["comfort_weighted"] += 0.03 * temperature
+if sweat_sensitivity == "High":
+    df_clean["comfort_weighted"] += 5
+if activity_intensity == "High":
+    df_clean["comfort_weighted"] += 2
 
-        recommendations.append({
-            "Fabric": fabric,
-            "Comfort Score (%)": comfort_label,
-            "Explanation": explanation
-        })
+# --- Ranking fabrics ---
+df_clean["predicted_diff"] = abs(df_clean["comfort_weighted"] - predicted_score)
+top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
+
+# --- AI-driven explanation generator ---
+def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
+    base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
+
+    if "Cotton" in fabric:
+        base += " It provides high breathability and moisture absorption, keeping the body cool in warm conditions."
+    elif "Polyester" in fabric:
+        base += " It offers durability and quick-dry properties, suitable for sportswear and active movement."
+    elif "Nylon" in fabric:
+        base += " It maintains elasticity and strength under pressure, making it ideal for high-activity use."
+    elif "Wool" in fabric:
+        base += " It insulates effectively while allowing vapor transmission, beneficial for moderate-cold conditions."
+    elif "Linen" in fabric:
+        base += " It ensures rapid heat dissipation and comfort in hot, humid environments."
+    elif "Silk" in fabric:
+        base += " It provides thermal regulation and a soft, luxurious texture for balanced comfort."
+    elif "Rayon" in fabric:
+        base += " It mimics natural fibers while offering excellent moisture absorption and drape."
+    elif "Spandex" in fabric:
+        base += " It introduces flexibility and stretch, enhancing comfort during movement."
+    else:
+        base += " It demonstrates balanced heat and moisture management characteristics."
+
+    # Adaptive reasoning
+    if temperature > 32 and humidity > 70:
+        base += " Its evaporative cooling and moisture-wicking ability make it suitable for tropical conditions."
+    elif temperature < 20:
+        base += " The fabric’s thermal retention properties enhance comfort in cooler climates."
+    if sweat_sensitivity == "High":
+        base += " Its air-permeable structure reduces discomfort from perspiration."
+    if activity_intensity == "High":
+        base += " The material allows rapid moisture evaporation, supporting performance efficiency."
+
+    return base
+
+# --- Display AI summary ---
+st.metric("Predicted Comfort Index", f"{predicted_percent} %", help="Normalized comfort score across 0–100 scale")
+
+# --- Display top 3 fabric recommendations ---
+st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
+cols = st.columns(3)
+recommendations = []
+
+for i, (_, row) in enumerate(top_matches.iterrows()):
+    fabric = row.get("fabric_type", "Unknown")
+    score_raw = row[target_col]
+    comfort_label = f"{round(score_raw * 100, 1)} %"
+    explanation = generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity)
+
+    with cols[i]:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h4>🧵 {fabric}</h4>
+            <div class="metric-value">{comfort_label}</div>
+            <div class="metric-label">Comfort Score</div>
+            <p>{explanation}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    recommendations.append({
+        "Fabric": fabric,
+        "Comfort Score (%)": comfort_label,
+        "Explanation": explanation
+    })
+
+
 
     # Chart
     chart_data = pd.DataFrame(recommendations)
