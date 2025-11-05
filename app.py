@@ -183,28 +183,24 @@ with tab1:
     top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
     
     # --- AI-driven explanation generator ---
-        # --- AI-driven explanation generator ---
-    def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
-        base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
-    
-        if "Cotton" in fabric:
-            base += " It provides high breathability and moisture absorption, keeping the body cool in warm conditions."
-        elif "Polyester" in fabric:
-            base += " It offers durability and quick-dry properties, suitable for sportswear and active movement."
-        elif "Nylon" in fabric:
-            base += " It maintains elasticity and strength under pressure, making it ideal for high-activity use."
-        elif "Wool" in fabric:
-            base += " It insulates effectively while allowing vapor transmission, beneficial for moderate-cold conditions."
-        elif "Linen" in fabric:
-            base += " It ensures rapid heat dissipation and comfort in hot, humid environments."
-        elif "Silk" in fabric:
-            base += " It provides thermal regulation and a soft, luxurious texture for balanced comfort."
-        elif "Rayon" in fabric:
-            base += " It mimics natural fibers while offering excellent moisture absorption and drape."
-        elif "Spandex" in fabric:
-            base += " It introduces flexibility and stretch, enhancing comfort during movement."
-        else:
-            base += " It demonstrates balanced heat and moisture management characteristics."
+    # --- Human-Friendly Comfort Explanation ---
+    def generate_fabric_explanation(fabric, score_percent):
+    """
+    Converts numerical comfort score into a simple real-life meaning
+    that any normal clothing buyer can understand.
+    """
+    if score_percent >= 75:
+        comfort_description = "very comfortable and ideal for the current weather"
+    elif score_percent >= 50:
+        comfort_description = "reasonably comfortable for general daily wear"
+    else:
+        comfort_description = "may feel warm or less breathable in this weather"
+
+    return (
+        f"{fabric} is rated as **{comfort_description}**. "
+        "This score reflects heat control, sweat evaporation, and how breathable the fabric feels on skin."
+    )
+
     
         # Adaptive reasoning
         if temperature > 32 and humidity > 70:
