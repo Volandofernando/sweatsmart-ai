@@ -183,9 +183,22 @@ with tab1:
     top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
     
     # --- AI-driven explanation generator ---
-    def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
-        base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
-    
+    # --- Human-Friendly Explanation (Easy for Non-Technical Users) ---
+    def generate_fabric_explanation(fabric, score):
+    # Convert score into a simple feeling description
+    if score >= 75:
+        comfort_level = "very comfortable to wear"
+    elif score >= 50:
+        comfort_level = "reasonably comfortable for daily use"
+    else:
+        comfort_level = "likely to feel warm or less breathable"
+
+    return (
+        f"{fabric} is rated as **{comfort_level}** under your selected weather and activity conditions. "
+        "This score reflects how well the fabric allows your skin to breathe, how quickly sweat can dry, "
+        "and how cool the fabric feels on your body."
+    )
+
         if "Cotton" in fabric:
             base += " It provides high breathability and moisture absorption, keeping the body cool in warm conditions."
         elif "Polyester" in fabric:
