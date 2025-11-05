@@ -218,10 +218,6 @@ def generate_fabric_explanation(fabric, score):
 
 st.metric("Predicted Comfort Index", f"{predicted_percent:.1f} %")
 
-
-    
-    # --- Display AI summary ---
-    st.metric("Predicted Comfort Index", f"{predicted_percent} %", help="Normalized comfort score across 0–100 scale")
     # ---- Plain-Language Meaning of Comfort Score ----
     st.markdown("""
     <div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
