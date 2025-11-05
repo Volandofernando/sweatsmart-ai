@@ -185,21 +185,21 @@ with tab1:
     # --- AI-driven explanation generator ---
     # --- Human-Friendly Comfort Explanation ---
     def generate_fabric_explanation(fabric, score_percent):
-    """
-    Converts numerical comfort score into a simple real-life meaning
-    that any normal clothing buyer can understand.
-    """
-    if score_percent >= 75:
-        comfort_description = "very comfortable and ideal for the current weather"
-    elif score_percent >= 50:
-        comfort_description = "reasonably comfortable for general daily wear"
-    else:
-        comfort_description = "may feel warm or less breathable in this weather"
+        """
+        Converts numerical comfort score into a simple real-life meaning
+        that any normal clothing buyer can understand.
+        """
+        if score_percent >= 75:
+            comfort_description = "very comfortable and ideal for the current weather"
+        elif score_percent >= 50:
+            comfort_description = "reasonably comfortable for general daily wear"
+        else:
+            comfort_description = "may feel warm or less breathable in this weather"
 
-    return (
-        f"{fabric} is rated as **{comfort_description}**. "
-        "This score reflects heat control, sweat evaporation, and how breathable the fabric feels on skin."
-    )
+        return (
+            f"{fabric} is rated as **{comfort_description}**. "
+            "This score reflects heat control, sweat evaporation, and how breathable the fabric feels on skin."
+        )
 
     
         # Adaptive reasoning
