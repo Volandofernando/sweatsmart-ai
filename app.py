@@ -184,39 +184,19 @@ with tab1:
     top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
     
     # --- AI-driven explanation generator ---
-    def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
-        base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
-    
-        if "Cotton" in fabric:
-            base += " It provides high breathability and moisture absorption, keeping the body cool in warm conditions."
-        elif "Polyester" in fabric:
-            base += " It offers durability and quick-dry properties, suitable for sportswear and active movement."
-        elif "Nylon" in fabric:
-            base += " It maintains elasticity and strength under pressure, making it ideal for high-activity use."
-        elif "Wool" in fabric:
-            base += " It insulates effectively while allowing vapor transmission, beneficial for moderate-cold conditions."
-        elif "Linen" in fabric:
-            base += " It ensures rapid heat dissipation and comfort in hot, humid environments."
-        elif "Silk" in fabric:
-            base += " It provides thermal regulation and a soft, luxurious texture for balanced comfort."
-        elif "Rayon" in fabric:
-            base += " It mimics natural fibers while offering excellent moisture absorption and drape."
-        elif "Spandex" in fabric:
-            base += " It introduces flexibility and stretch, enhancing comfort during movement."
-        else:
-            base += " It demonstrates balanced heat and moisture management characteristics."
-    
-        # Adaptive reasoning
-        if temperature > 32 and humidity > 70:
-            base += " Its evaporative cooling and moisture-wicking ability make it suitable for tropical conditions."
-        elif temperature < 20:
-            base += " The fabric’s thermal retention properties enhance comfort in cooler climates."
-        if sweat_sensitivity == "High":
-            base += " Its air-permeable structure reduces discomfort from perspiration."
-        if activity_intensity == "High":
-            base += " The material allows rapid moisture evaporation, supporting performance efficiency."
-    
-        return base
+    def generate_fabric_explanation(fabric, score):
+    if score >= 70:
+        feeling = "very comfortable and breathable"
+    elif score >= 45:
+        feeling = "moderately comfortable"
+    else:
+        feeling = "less comfortable in warm or humid conditions"
+
+    return (
+        f"{fabric} is rated as **{feeling}** for the selected climate and activity level. "
+        "The Comfort Score reflects how well this fabric releases heat and manages sweat to keep the body dry."
+    )
+
     
     # --- Display AI summary ---
     st.metric("Predicted Comfort Index", f"{predicted_percent} %", help="Normalized comfort score across 0–100 scale")
