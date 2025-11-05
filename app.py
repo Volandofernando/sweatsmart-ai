@@ -159,89 +159,89 @@ with tab1:
 # 🧠 Enhanced Comfort Prediction, Robust Scaling & Ranking
 # -------------------------------
 
-# 1) Predict user comfort using the trained model
-predicted_raw = float(model.predict(user_input_scaled)[0])
-
-# 2) Predict comfort for all fabrics to ensure scale alignment
-try:
-    model_preds_all = model.predict(scaler.transform(df_clean[feature_cols].values))
-except:
-    model_preds_all = model.predict(scaler.transform(df_clean.loc[:, feature_cols].values))
-
-df_clean = df_clean.copy()
-df_clean["_model_pred"] = model_preds_all.astype(float)
-
-# 3) Convert model outputs into a **0–100 comfort scale**
-pred_min = float(df_clean["_model_pred"].min())
-pred_max = float(df_clean["_model_pred"].max())
-
-if pred_max - pred_min <= 0:
-    df_clean["_pred_pct"] = 50.0
-    predicted_percent = 50.0
-else:
-    df_clean["_pred_pct"] = ((df_clean["_model_pred"] - pred_min) / (pred_max - pred_min)) * 100.0
-    predicted_percent = ((predicted_raw - pred_min) / (pred_max - pred_min)) * 100.0
-
-predicted_percent = float(np.clip(predicted_percent, 0, 100))
-
-# 4) Apply environmental weighting **safely on the 0–100 scale**
-df_clean["_weighted_pct"] = df_clean["_pred_pct"].copy()
-
-if humidity > 70:
-    df_clean["_weighted_pct"] += 0.05 * (humidity - 70)
-if temperature > 32:
-    df_clean["_weighted_pct"] += 0.03 * (temperature - 32)
-if sweat_sensitivity == "High":
-    df_clean["_weighted_pct"] += 4
-elif sweat_sensitivity == "Medium":
-    df_clean["_weighted_pct"] += 2
-if activity_intensity == "High":
-    df_clean["_weighted_pct"] += 2.5
-
-df_clean["_weighted_pct"] = df_clean["_weighted_pct"].clip(0, 100)
-
-# 5) Rank fabrics closest to the user’s predicted comfort level
-df_clean["_dist_to_user"] = abs(df_clean["_weighted_pct"] - predicted_percent)
-top_matches = df_clean.sort_values(
-    by=["_dist_to_user", "_weighted_pct"],
-    ascending=[True, False]
-).head(3)
-
-# 6) Explanation logic
-def generate_fabric_explanation(fabric, score):
-    if score >= 80:
-        return f"{fabric} provides excellent thermal regulation and sweat dispersion, making it ideal for warm and active conditions."
-    elif score >= 55:
-        return f"{fabric} offers moderate comfort under the selected temperature and humidity, balancing heat and moisture control."
+    # 1) Predict user comfort using the trained model
+    predicted_raw = float(model.predict(user_input_scaled)[0])
+    
+    # 2) Predict comfort for all fabrics to ensure scale alignment
+    try:
+        model_preds_all = model.predict(scaler.transform(df_clean[feature_cols].values))
+    except:
+        model_preds_all = model.predict(scaler.transform(df_clean.loc[:, feature_cols].values))
+    
+    df_clean = df_clean.copy()
+    df_clean["_model_pred"] = model_preds_all.astype(float)
+    
+    # 3) Convert model outputs into a **0–100 comfort scale**
+    pred_min = float(df_clean["_model_pred"].min())
+    pred_max = float(df_clean["_model_pred"].max())
+    
+    if pred_max - pred_min <= 0:
+        df_clean["_pred_pct"] = 50.0
+        predicted_percent = 50.0
     else:
-        return f"{fabric} may feel warmer or retain moisture under these climate and activity conditions."
-
-# ✅ Display User Comfort Score
-st.metric("Predicted Comfort Index", f"{predicted_percent:.1f} %")
-
-# ✅ Plain-language meaning box (correct indentation)
-st.markdown("""
-<div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
-<b>What does this score mean?</b><br>
-The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
-• <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
-• <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
-• <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
-Higher score = better comfort in your situation.
-</div>
-""", unsafe_allow_html=True)
-
-    # ---- Plain-Language Meaning of Comfort Score ----
-st.markdown("""
-<div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
-<b>What does this score mean?</b><br>
-The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
-• <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
-• <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
-• <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
-Higher score = better comfort in your situation.
-</div>
-""", unsafe_allow_html=True)
+        df_clean["_pred_pct"] = ((df_clean["_model_pred"] - pred_min) / (pred_max - pred_min)) * 100.0
+        predicted_percent = ((predicted_raw - pred_min) / (pred_max - pred_min)) * 100.0
+    
+    predicted_percent = float(np.clip(predicted_percent, 0, 100))
+    
+    # 4) Apply environmental weighting **safely on the 0–100 scale**
+    df_clean["_weighted_pct"] = df_clean["_pred_pct"].copy()
+    
+    if humidity > 70:
+        df_clean["_weighted_pct"] += 0.05 * (humidity - 70)
+    if temperature > 32:
+        df_clean["_weighted_pct"] += 0.03 * (temperature - 32)
+    if sweat_sensitivity == "High":
+        df_clean["_weighted_pct"] += 4
+    elif sweat_sensitivity == "Medium":
+        df_clean["_weighted_pct"] += 2
+    if activity_intensity == "High":
+        df_clean["_weighted_pct"] += 2.5
+    
+    df_clean["_weighted_pct"] = df_clean["_weighted_pct"].clip(0, 100)
+    
+    # 5) Rank fabrics closest to the user’s predicted comfort level
+    df_clean["_dist_to_user"] = abs(df_clean["_weighted_pct"] - predicted_percent)
+    top_matches = df_clean.sort_values(
+        by=["_dist_to_user", "_weighted_pct"],
+        ascending=[True, False]
+    ).head(3)
+    
+    # 6) Explanation logic
+    def generate_fabric_explanation(fabric, score):
+        if score >= 80:
+            return f"{fabric} provides excellent thermal regulation and sweat dispersion, making it ideal for warm and active conditions."
+        elif score >= 55:
+            return f"{fabric} offers moderate comfort under the selected temperature and humidity, balancing heat and moisture control."
+        else:
+            return f"{fabric} may feel warmer or retain moisture under these climate and activity conditions."
+    
+    # ✅ Display User Comfort Score
+    st.metric("Predicted Comfort Index", f"{predicted_percent:.1f} %")
+    
+    # ✅ Plain-language meaning box (correct indentation)
+    st.markdown("""
+    <div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
+    <b>What does this score mean?</b><br>
+    The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
+    • <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
+    • <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
+    • <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
+    Higher score = better comfort in your situation.
+    </div>
+    """, unsafe_allow_html=True)
+    
+        # ---- Plain-Language Meaning of Comfort Score ----
+    st.markdown("""
+    <div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
+    <b>What does this score mean?</b><br>
+    The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
+    • <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
+    • <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
+    • <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
+    Higher score = better comfort in your situation.
+    </div>
+    """, unsafe_allow_html=True)
 
     
     # --- Display top 3 fabric recommendations ---
