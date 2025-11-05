@@ -183,22 +183,10 @@ with tab1:
     top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
     
     # --- AI-driven explanation generator ---
-    # --- Human-Friendly Explanation (Easy for Non-Technical Users) ---
-    def generate_fabric_explanation(fabric, score):
-    # Convert score into a simple feeling description
-    if score >= 75:
-        comfort_level = "very comfortable to wear"
-    elif score >= 50:
-        comfort_level = "reasonably comfortable for daily use"
-    else:
-        comfort_level = "likely to feel warm or less breathable"
-
-    return (
-        f"{fabric} is rated as **{comfort_level}** under your selected weather and activity conditions. "
-        "This score reflects how well the fabric allows your skin to breathe, how quickly sweat can dry, "
-        "and how cool the fabric feels on your body."
-    )
-
+        # --- AI-driven explanation generator ---
+    def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
+        base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
+    
         if "Cotton" in fabric:
             base += " It provides high breathability and moisture absorption, keeping the body cool in warm conditions."
         elif "Polyester" in fabric:
@@ -232,20 +220,6 @@ with tab1:
     
     # --- Display AI summary ---
     st.metric("Predicted Comfort Index", f"{predicted_percent} %", help="Normalized comfort score across 0–100 scale")
-    # ---- Plain-Language Meaning of Comfort Score ----
-    st.markdown("""
-    <div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
-    <b>What does this score mean?</b><br>
-    The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
-
-    • <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
-    • <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
-    • <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
-
-    Higher score = better comfort in your situation.
-    </div>
-    """, unsafe_allow_html=True)
-
     
     # --- Display top 3 fabric recommendations ---
     st.markdown("## 🔹 Recommended Fabrics for Your Scenario")
@@ -255,16 +229,7 @@ with tab1:
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
         score_raw = row[target_col]
-    # --- Normalize comfort score to realistic 0–100 scale ---
-        min_score = float(df_clean[target_col].min())
-        max_score = float(df_clean[target_col].max())
-        score_raw = row[target_col]
-        
-    # Apply Min–Max normalization
-        normalized_score = ((score_raw - min_score) / (max_score - min_score)) * 100
-        normalized_score = np.clip(normalized_score, 0, 100)  # clamp within range
-        comfort_label = f"{normalized_score:.1f} %"
-
+        comfort_label = f"{round(score_raw * 100, 1)} %"
         explanation = generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity)
     
         with cols[i]:
