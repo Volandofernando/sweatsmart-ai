@@ -15,14 +15,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to:", ["🏠 Home", "🤖 SweatyBot"])
+st.set_page_config(page_title="SweatSmart AI Fabrics", layout="wide")
 
-if page == "🏠 Home":
-    st.write("Welcome to SweatSmart AI Fabrics!")
-if page == "🤖 SweatyBot":
-    import sweatybot
-    sweatybot.render()
+st.sidebar.title("🧭 Navigation")
+page = st.sidebar.radio("Go to:", ["🏠 Home", "📌 AI Comfort Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
 
 # -------------------------------
 # Load Config
