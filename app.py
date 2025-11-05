@@ -228,7 +228,16 @@ with tab1:
     for i, (_, row) in enumerate(top_matches.iterrows()):
         fabric = row.get("fabric_type", "Unknown")
         score_raw = row[target_col]
-        comfort_label = f"{round(score_raw * 100, 1)} %"
+    # --- Normalize comfort score to realistic 0–100 scale ---
+        min_score = float(df_clean[target_col].min())
+        max_score = float(df_clean[target_col].max())
+        score_raw = row[target_col]
+        
+    # Apply Min–Max normalization
+        normalized_score = ((score_raw - min_score) / (max_score - min_score)) * 100
+        normalized_score = np.clip(normalized_score, 0, 100)  # clamp within range
+        comfort_label = f"{normalized_score:.1f} %"
+
         explanation = generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity)
     
         with cols[i]:
@@ -395,5 +404,4 @@ st.markdown("""
 🔗 **Project Repository:** [GitHub – VolandoFernando/sweatsmart-ai](https://github.com/VolandoFernando/sweatsmart-ai)  
 📘 **Author:** Volando Fernando | University of West London (UWL)
 """)
-
 
