@@ -183,7 +183,6 @@ with tab1:
     top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
     
     # --- AI-driven explanation generator ---
-    def generate_fabric_explanation(fabric, score):
     def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
         base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
     
