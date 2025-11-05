@@ -7,18 +7,18 @@ from utils import load_config, load_datasets, detect_features_and_target, train_
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-import streamlit as st
-st.set_page_config(page_title="SweatSmart AI Fabrics", layout="wide")
-
 st.markdown("""
 <meta name="google-site-verification" content="_NhjPZ3SK1IoAqj4b04D7AlhSSPzpgfZSjmuZq3nE9E" />
 """, unsafe_allow_html=True)
 
-
-st.set_page_config(page_title="SweatSmart AI Fabrics", layout="wide")
-
 st.sidebar.title("🧭 Navigation")
-page = st.sidebar.radio("Go to:", ["🏠 Home", "📌 AI Comfort Recommender", "📊 Insights", "🤖 Model Performance", "ℹ️ About"])
+page = st.sidebar.radio("Go to:", ["🏠 Home", "🤖 SweatyBot"])
+
+if page == "🏠 Home":
+    st.write("Welcome to SweatSmart AI Fabrics!")
+if page == "🤖 SweatyBot":
+    import sweatybot
+    sweatybot.render()
 
 # -------------------------------
 # Load Config
