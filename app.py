@@ -216,7 +216,20 @@ def generate_fabric_explanation(fabric, score):
     else:
         return f"{fabric} may feel warmer or retain moisture under these climate and activity conditions."
 
+# ✅ Display User Comfort Score
 st.metric("Predicted Comfort Index", f"{predicted_percent:.1f} %")
+
+# ✅ Plain-language meaning box (correct indentation)
+st.markdown("""
+<div style="background:#222;padding:14px;border-radius:8px;font-size:15px;line-height:1.5;color:#f2f2f2;">
+<b>What does this score mean?</b><br>
+The Comfort Score shows how comfortable the fabric will feel for <b>your selected weather and activity conditions</b>.<br><br>
+• <b>80% – 100%</b> → Feels very cool, breathable, sweat escapes easily.<br>
+• <b>50% – 79%</b> → Comfortable but may feel warm under heavy sweat.<br>
+• <b>0% – 49%</b> → May feel sticky, hot, or trap moisture.<br><br>
+Higher score = better comfort in your situation.
+</div>
+""", unsafe_allow_html=True)
 
     # ---- Plain-Language Meaning of Comfort Score ----
 st.markdown("""
