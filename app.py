@@ -232,7 +232,7 @@ with tab1:
         normalized_score = np.clip(normalized_score, 0, 100)  # clamp within range
         comfort_label = f"{normalized_score:.1f} %"
 
-        explanation = generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity)
+        explanation = generate_fabric_explanation(fabric, normalized_score)
     
         with cols[i]:
             st.markdown(f"""
