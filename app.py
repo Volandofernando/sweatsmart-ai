@@ -156,45 +156,68 @@ with tab1:
     user_input_scaled = scaler.transform(user_input)
 
 # -------------------------------
-# 🧠 Enhanced Comfort Prediction & AI Reasoning
+# 🧠 Enhanced Comfort Prediction, Robust Scaling & Ranking
 # -------------------------------
-# Predict comfort score
-    predicted_score = float(model.predict(user_input_scaled)[0])
-    
-    # Normalize prediction to 0–100 range for interpretability
-    min_score = float(df_clean[target_col].min())
-    max_score = float(df_clean[target_col].max())
-    predicted_percent = round(((predicted_score - min_score) / (max_score - min_score)) * 100, 1)
-    predicted_percent = max(0, min(predicted_percent, 100))  # clamp 0–100
-    
-    # --- Industrial weighting adjustments ---
-    df_clean["comfort_weighted"] = df_clean[target_col]
-    
-    if humidity > 70:
-        df_clean["comfort_weighted"] += 0.05 * humidity
-    if temperature > 32:
-        df_clean["comfort_weighted"] += 0.03 * temperature
-    if sweat_sensitivity == "High":
-        df_clean["comfort_weighted"] += 5
-    if activity_intensity == "High":
-        df_clean["comfort_weighted"] += 2
-    
-    # --- Ranking fabrics ---
-    df_clean["predicted_diff"] = abs(df_clean["comfort_weighted"] - predicted_score)
-    top_matches = df_clean.sort_values(by=["predicted_diff", "comfort_weighted"], ascending=[True, False]).head(3)
-    
-    # --- AI-driven explanation generator ---
-    def generate_fabric_explanation(fabric, score):
-        if score >= 70:
-            feeling = "very comfortable and breathable" 
-        elif score >= 45:
-            feeling = "moderately comfortable"
-        else:
-            feeling = "less comfortable in warm or humid conditions"
-            return (
-                f"{fabric} is rated as **{feeling}** for the selected climate and activity level. "
-                "The Comfort Score reflects how well this fabric releases heat and manages sweat to keep the body dry."
-            )
+
+# 1) Predict user comfort using the trained model
+predicted_raw = float(model.predict(user_input_scaled)[0])
+
+# 2) Predict comfort for all fabrics to ensure scale alignment
+try:
+    model_preds_all = model.predict(scaler.transform(df_clean[feature_cols].values))
+except:
+    model_preds_all = model.predict(scaler.transform(df_clean.loc[:, feature_cols].values))
+
+df_clean = df_clean.copy()
+df_clean["_model_pred"] = model_preds_all.astype(float)
+
+# 3) Convert model outputs into a **0–100 comfort scale**
+pred_min = float(df_clean["_model_pred"].min())
+pred_max = float(df_clean["_model_pred"].max())
+
+if pred_max - pred_min <= 0:
+    df_clean["_pred_pct"] = 50.0
+    predicted_percent = 50.0
+else:
+    df_clean["_pred_pct"] = ((df_clean["_model_pred"] - pred_min) / (pred_max - pred_min)) * 100.0
+    predicted_percent = ((predicted_raw - pred_min) / (pred_max - pred_min)) * 100.0
+
+predicted_percent = float(np.clip(predicted_percent, 0, 100))
+
+# 4) Apply environmental weighting **safely on the 0–100 scale**
+df_clean["_weighted_pct"] = df_clean["_pred_pct"].copy()
+
+if humidity > 70:
+    df_clean["_weighted_pct"] += 0.05 * (humidity - 70)
+if temperature > 32:
+    df_clean["_weighted_pct"] += 0.03 * (temperature - 32)
+if sweat_sensitivity == "High":
+    df_clean["_weighted_pct"] += 4
+elif sweat_sensitivity == "Medium":
+    df_clean["_weighted_pct"] += 2
+if activity_intensity == "High":
+    df_clean["_weighted_pct"] += 2.5
+
+df_clean["_weighted_pct"] = df_clean["_weighted_pct"].clip(0, 100)
+
+# 5) Rank fabrics closest to the user’s predicted comfort level
+df_clean["_dist_to_user"] = abs(df_clean["_weighted_pct"] - predicted_percent)
+top_matches = df_clean.sort_values(
+    by=["_dist_to_user", "_weighted_pct"],
+    ascending=[True, False]
+).head(3)
+
+# 6) Explanation logic
+def generate_fabric_explanation(fabric, score):
+    if score >= 80:
+        return f"{fabric} provides excellent thermal regulation and sweat dispersion, making it ideal for warm and active conditions."
+    elif score >= 55:
+        return f"{fabric} offers moderate comfort under the selected temperature and humidity, balancing heat and moisture control."
+    else:
+        return f"{fabric} may feel warmer or retain moisture under these climate and activity conditions."
+
+st.metric("Predicted Comfort Index", f"{predicted_percent:.1f} %")
+
 
     
     # --- Display AI summary ---
