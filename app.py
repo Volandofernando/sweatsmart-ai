@@ -184,18 +184,7 @@ with tab1:
     
     # --- AI-driven explanation generator ---
     def generate_fabric_explanation(fabric, score):
-    if score >= 70:
-        feeling = "very comfortable and breathable"
-    elif score >= 45:
-        feeling = "moderately comfortable"
-    else:
-        feeling = "less comfortable in warm or humid conditions"
-
-    return (
-        f"{fabric} is rated as **{feeling}** for the selected climate and activity level. "
-        "The Comfort Score reflects how well this fabric releases heat and manages sweat to keep the body dry."
-    )
-
+    def generate_fabric_explanation(fabric, temperature, humidity, sweat_sensitivity, activity_intensity):
         base = f"{fabric} is recommended based on its adaptive performance under current climate and activity levels."
     
         if "Cotton" in fabric:
