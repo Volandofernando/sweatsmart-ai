@@ -16,9 +16,10 @@ page = st.sidebar.radio("Go to:", ["🏠 Home", "🤖 SweatyBot"])
 
 if page == "🏠 Home":
     st.write("Welcome to SweatSmart AI Fabrics!")
-if page == "🤖 SweatyBot":
+elif page == "🤖 SweatyBot":
     import sweatybot
     sweatybot.render()
+    st.stop()  # ✅ This stops the recommender UI from running underneath
 
 # -------------------------------
 # Load Config
