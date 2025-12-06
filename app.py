@@ -155,9 +155,9 @@ with tab1:
                             0.04 + (temperature - 25) * 0.001]])
     user_input_scaled = scaler.transform(user_input)
 
-# -------------------------------
-# 🧠 Enhanced Comfort Prediction, Robust Scaling & Ranking
-# -------------------------------
+
+# Enhanced Comfort Prediction, Robust Scaling & Ranking
+
 
     # 1) Predict user comfort using the trained model
     predicted_raw = float(model.predict(user_input_scaled)[0])
