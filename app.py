@@ -138,7 +138,7 @@ with tab1:
 
         temperature = st.slider("🌡️ Outdoor Temperature (°C)", 10, 45, 28,
                                 help="Higher temperatures increase thermal stress and impact fabric comfort.")
-        humidity = st.text_box("💧 Humidity (%)", 20 ,40 ,60 ,
+        humidity = st.slider("💧 Humidity (%)", 20 ,40 ,60 ,
                              help="Humidity = moisture in the air. High humidity slows sweat evaporation → fabrics feel warmer.")
         sweat_sensitivity = st.select_slider("🧍 Sweat Sensitivity", ["Low", "Medium", "High"],
                                              help="Represents how easily you sweat during activities.")
